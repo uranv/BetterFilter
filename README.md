@@ -1,4 +1,4 @@
-# [UR] Better Storage Filter
+# [UR] Better Filter for Storage, Food and Clothes Restrictions
 
 **A better storage filter for RimWorld — faster category navigation, more flexible paste options, finer-grained item filtering.**
 
