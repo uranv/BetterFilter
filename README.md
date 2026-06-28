@@ -1,6 +1,6 @@
 # [UR] Better Storage Filter
 
-> A better storage filter for RimWorld — faster category navigation, more flexible paste options, finer-grained item filtering.
+**A better storage filter for RimWorld — faster category navigation, more flexible paste options, finer-grained item filtering.**
 
 ## Main Features
 
