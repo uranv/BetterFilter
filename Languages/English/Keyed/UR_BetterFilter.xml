@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+  <!-- ── Top bar ── -->
+  <UR.BetterFilter.New>New</UR.BetterFilter.New>
+  <UR.BetterFilter.FilterWorker>Filter Worker</UR.BetterFilter.FilterWorker>
+  <UR.BetterFilter.ModFilter>Mod Filter</UR.BetterFilter.ModFilter>
+  <UR.BetterFilter.NumericFilter>Numeric Filter</UR.BetterFilter.NumericFilter>
+  <UR.BetterFilter.CategoryFilter>Category Filter</UR.BetterFilter.CategoryFilter>
+  <UR.BetterFilter.EnumFilter>Enum Filter</UR.BetterFilter.EnumFilter>
+  <UR.BetterFilter.Save>Save</UR.BetterFilter.Save>
+  <UR.BetterFilter.Load>Load</UR.BetterFilter.Load>
+  <UR.BetterFilter.Apply>Apply</UR.BetterFilter.Apply>
+
+  <!-- ── Storage filter tree ── -->
+  <UR.BetterFilter.OpenAdvanced>Open</UR.BetterFilter.OpenAdvanced>
+  <UR.BetterFilter.ApplyFilter>Apply</UR.BetterFilter.ApplyFilter>
+  <UR.BetterFilter.Invert>Invert</UR.BetterFilter.Invert> 
+  <UR.BetterFilter.HitPoints>HitPoints</UR.BetterFilter.HitPoints>
+  <ExpandOneLevel>Expand one level</ExpandOneLevel>
+  <CollapseOneLevel>Collapse one level</CollapseOneLevel>
+
+  <!-- ── Advanced Filters dialog ── -->
+  <UR.BetterFilter.PreviewAllowItemCount>Preview (Allow Item Count: {0})</UR.BetterFilter.PreviewAllowItemCount>
+  <UR.BetterFilter.ManualOverrides>Manual Overrides ({0})</UR.BetterFilter.ManualOverrides>
+  <UR.BetterFilter.Add>Add</UR.BetterFilter.Add>
+  <UR.BetterFilter.NoActiveOverrides>No active overrides. Click "Add" to manually allow or disallow a specific item.</UR.BetterFilter.NoActiveOverrides>
+
+  <!-- ── Standard control buttons ── -->
+  <UR.BetterFilter.DeleteModuleTooltip>Delete this filter module</UR.BetterFilter.DeleteModuleTooltip>
+  <UR.BetterFilter.RemoveLastAddedTooltip>Remove last added item</UR.BetterFilter.RemoveLastAddedTooltip>
+  <UR.BetterFilter.AddItemTooltip>Add an item to this filter</UR.BetterFilter.AddItemTooltip>
+
+  <!-- ── Filter component labels ── -->
+  <UR.BetterFilter.WhiteList>(White List)</UR.BetterFilter.WhiteList>
+  <UR.BetterFilter.BlackList>(Black List)</UR.BetterFilter.BlackList>
+  <UR.BetterFilter.SelectFilter>Select Filter...</UR.BetterFilter.SelectFilter>
+  <UR.BetterFilter.NoModsSelected>Select Mod...</UR.BetterFilter.NoModsSelected>
+  <UR.BetterFilter.NoCategoriesSelected>Select Category...</UR.BetterFilter.NoCategoriesSelected>
+
+  <!-- ── Mod filter ── -->
+  <UR.BetterFilter.RemoveMod>-</UR.BetterFilter.RemoveMod>
+  <UR.BetterFilter.RemoveLastAddedModTooltip>Remove last added mod</UR.BetterFilter.RemoveLastAddedModTooltip>
+  <UR.BetterFilter.AddMod>+</UR.BetterFilter.AddMod>
+  <UR.BetterFilter.AddModTooltip>Add a mod to this filter</UR.BetterFilter.AddModTooltip>
+
+  <!-- ── Numeric filter ── -->
+  <UR.BetterFilter.StackLimit>Stack Limit</UR.BetterFilter.StackLimit>
+  <UR.BetterFilter.MassKg>Mass (kg)</UR.BetterFilter.MassKg>
+  <UR.BetterFilter.MaxValue>Max:</UR.BetterFilter.MaxValue>
+  <UR.BetterFilter.MinValue>Min:</UR.BetterFilter.MinValue>
+  <UR.BetterFilter.SelectPropertyTooltip>Select numeric property</UR.BetterFilter.SelectPropertyTooltip>
+  <UR.BetterFilter.Loose>(Loose)</UR.BetterFilter.Loose>
+  <UR.BetterFilter.Strict>(Strict)</UR.BetterFilter.Strict>
+  <UR.BetterFilter.LooseToggle>L</UR.BetterFilter.LooseToggle>
+  <UR.BetterFilter.StrictToggle>S</UR.BetterFilter.StrictToggle>
+  <UR.BetterFilter.Min>Min:</UR.BetterFilter.Min>
+  <UR.BetterFilter.Max>Max:</UR.BetterFilter.Max>
+
+  <!-- ── Tooltips ── -->
+  <UR.BetterFilter.WhitelistWorkerTooltip>Whitelist: allow matching items</UR.BetterFilter.WhitelistWorkerTooltip>
+  <UR.BetterFilter.BlacklistWorkerTooltip>Blacklist: disallow matching items</UR.BetterFilter.BlacklistWorkerTooltip>
+  <UR.BetterFilter.WhitelistModTooltip>Whitelist: allow items from selected mods</UR.BetterFilter.WhitelistModTooltip>
+  <UR.BetterFilter.BlacklistModTooltip>Blacklist: disallow items from selected mods</UR.BetterFilter.BlacklistModTooltip>
+  <UR.BetterFilter.WhitelistNumericTooltip>Whitelist: allow items in range</UR.BetterFilter.WhitelistNumericTooltip>
+  <UR.BetterFilter.BlacklistNumericTooltip>Blacklist: disallow items in range</UR.BetterFilter.BlacklistNumericTooltip>
+  <UR.BetterFilter.LooseTooltip>Loose: allow items without this property</UR.BetterFilter.LooseTooltip>
+  <UR.BetterFilter.StrictTooltip>Strict: disallow items without this property</UR.BetterFilter.StrictTooltip>
+
+  <!-- ── Category filter ── -->
+  <UR.BetterFilter.RemoveCategory>-</UR.BetterFilter.RemoveCategory>
+  <UR.BetterFilter.RemoveLastAddedCategoryTooltip>Remove last added category</UR.BetterFilter.RemoveLastAddedCategoryTooltip>
+  <UR.BetterFilter.AddCategory>+</UR.BetterFilter.AddCategory>
+  <UR.BetterFilter.AddCategoryTooltip>Add a category to this filter</UR.BetterFilter.AddCategoryTooltip>
+  <UR.BetterFilter.WhitelistCategoryTooltip>Whitelist: allow items in selected categories</UR.BetterFilter.WhitelistCategoryTooltip>
+  <UR.BetterFilter.BlacklistCategoryTooltip>Blacklist: disallow items in selected categories</UR.BetterFilter.BlacklistCategoryTooltip>
+
+  <!-- ── Enum filter ── -->
+  <UR.BetterFilter.WeaponTags>Weapon Tags</UR.BetterFilter.WeaponTags>
+  <UR.BetterFilter.TradeTags>Trade Tags</UR.BetterFilter.TradeTags>
+  <UR.BetterFilter.TechLevel>Tech Level</UR.BetterFilter.TechLevel>
+  <UR.BetterFilter.ApparelTags>Apparel Tags</UR.BetterFilter.ApparelTags>
+  <UR.BetterFilter.ApparelLayer>Apparel Layer</UR.BetterFilter.ApparelLayer>
+  <UR.BetterFilter.BodyCoverage>Body Coverage</UR.BetterFilter.BodyCoverage>
+  <UR.BetterFilter.SelectEnumProperty>Select enum property...</UR.BetterFilter.SelectEnumProperty>
+  <UR.BetterFilter.SelectEnumValueTooltip>Select an enum value</UR.BetterFilter.SelectEnumValueTooltip>
+
+  <!-- ── Command input ── -->
+  <UR.BetterFilter.CommandInput>Command Line Input</UR.BetterFilter.CommandInput>
+  <UR.BetterFilter.CommandPrompt>Type filter command (e.g. worker -d SomeDef -b):</UR.BetterFilter.CommandPrompt>
+  <UR.BetterFilter.UnknownCommand>Unknown command type: {0}</UR.BetterFilter.UnknownCommand>
+  <UR.BetterFilter.WorkerNoDefName>Worker: missing -d defName argument.</UR.BetterFilter.WorkerNoDefName>
+  <UR.BetterFilter.WorkerNoValidDef>Worker: no valid SpecialThingFilterDef found for the given names.</UR.BetterFilter.WorkerNoValidDef>
+  <UR.BetterFilter.CmdDupD>-d specified more than once.</UR.BetterFilter.CmdDupD>
+  <UR.BetterFilter.CmdDupB>-b specified more than once.</UR.BetterFilter.CmdDupB>
+  <UR.BetterFilter.CmdDupU>-u specified more than once.</UR.BetterFilter.CmdDupU>
+  <UR.BetterFilter.CmdNoD>Missing required -d keyword.</UR.BetterFilter.CmdNoD>
+  <UR.BetterFilter.CmdNoDefNames>No defNames provided after -d.</UR.BetterFilter.CmdNoDefNames>
+  <UR.BetterFilter.CmdBadDefs>Unknown defName(s): {0}. Use -u to skip invalid names.</UR.BetterFilter.CmdBadDefs>
+  <UR.BetterFilter.CmdNoValidDef>No valid SpecialThingFilterDef found.</UR.BetterFilter.CmdNoValidDef>
+  <UR.BetterFilter.CmdBadMods>Unknown PackageId(s): {0}. Use -u to skip invalid IDs.</UR.BetterFilter.CmdBadMods>
+  <UR.BetterFilter.CmdNoValidMod>No valid mod PackageId found.</UR.BetterFilter.CmdNoValidMod>
+  <UR.BetterFilter.CmdBadCats>Unknown ThingCategoryDef(s): {0}. Use -u to skip invalid names.</UR.BetterFilter.CmdBadCats>
+  <UR.BetterFilter.CmdDupL>-l specified more than once.</UR.BetterFilter.CmdDupL>
+  <UR.BetterFilter.CmdDupV>-v specified more than once.</UR.BetterFilter.CmdDupV>
+  <UR.BetterFilter.CmdValueNoProp>Missing property name after -d (StackLimit or Mass).</UR.BetterFilter.CmdValueNoProp>
+  <UR.BetterFilter.CmdValueNoV>Missing -v with two numeric values (min max).</UR.BetterFilter.CmdValueNoV>
+  <UR.BetterFilter.CmdValueBadProp>Unknown property: {0}. Valid: StackLimit, Mass, or 'path.to.int'.</UR.BetterFilter.CmdValueBadProp>
+  <UR.BetterFilter.CmdValueMultiD>-d accepts exactly one property name.</UR.BetterFilter.CmdValueMultiD>
+  <UR.BetterFilter.CmdBadEnumVals>Unknown enum value(s): {0}. Use -u to skip invalid values.</UR.BetterFilter.CmdBadEnumVals>
+
+  <UR.BetterFilter.SaveEmptyName>Please enter a filename.</UR.BetterFilter.SaveEmptyName>
+  <UR.BetterFilter.SaveDuplicateName>A filter set with this name already exists.</UR.BetterFilter.SaveDuplicateName>
+  <UR.BetterFilter.Rename>Rename</UR.BetterFilter.Rename>
+  <UR.BetterFilter.Overwrite>Overwrite</UR.BetterFilter.Overwrite>
+  <UR.BetterFilter.Append>Append</UR.BetterFilter.Append>
+  <UR.BetterFilter.Filename>Filename:</UR.BetterFilter.Filename>
+  <UR.BetterFilter.NoSavedFilters>No saved filter sets.</UR.BetterFilter.NoSavedFilters>
+
+  <!-- ── Paste storage settings ── -->
+  <UR.BetterFilter.RightClickPaste>Right-click: add allowed/disallowed overlay</UR.BetterFilter.RightClickPaste>
+  <UR.BetterFilter.PasteOverwrite>Overwrite (vanilla)</UR.BetterFilter.PasteOverwrite>
+  <UR.BetterFilter.PasteAnd>Add disallowed (∧)</UR.BetterFilter.PasteAnd>
+  <UR.BetterFilter.PasteOr>Add allowed (∨)</UR.BetterFilter.PasteOr>
+  <UR.BetterFilter.PasteAndMessage>Add disallowed items from the clipboard.</UR.BetterFilter.PasteAndMessage>
+  <UR.BetterFilter.PasteOrMessage>Add allowed items from the clipboard.</UR.BetterFilter.PasteOrMessage>
+
+  <!-- ── Item filter ── -->
+  <UR.BetterFilter.ItemFilter>Item Filter</UR.BetterFilter.ItemFilter>
+  <UR.BetterFilter.CmdBadItemDefs>Unknown ThingDef(s): {0}. Use -u to skip invalid names.</UR.BetterFilter.CmdBadItemDefs>
+
+  <!-- ── Storage filter bottom buttons ── -->
+  <UR.BetterFilter.AdvancedFilter>Advanced Filter</UR.BetterFilter.AdvancedFilter>
+  <UR.BetterFilter.Copy>Copy</UR.BetterFilter.Copy>
+  <UR.BetterFilter.Paste>Paste</UR.BetterFilter.Paste>
+  <UR.BetterFilter.CopiedApparel>Copy apparel filter to the clipboard.</UR.BetterFilter.CopiedApparel>
+  <UR.BetterFilter.CopiedFood>Copy food filter to the clipboard.</UR.BetterFilter.CopiedFood>
+  <UR.BetterFilter.PasteEmpty>No filter copied.</UR.BetterFilter.PasteEmpty>
+
+  <UR.BetterFilter.ApplyMessage>Applied advanced filter settings.</UR.BetterFilter.ApplyMessage>
+  <UR.BetterFilter.ApplyEmptyWarning>No applicable filters. Enable at least one filter in mod settings.</UR.BetterFilter.ApplyEmptyWarning>
+  <UR.BetterFilter.ResetDefault>Reset Default</UR.BetterFilter.ResetDefault>
+
+  <!-- ── Settings - Introduction ── -->
+  <UR.BetterFilter.TabIntroduction>Introduction</UR.BetterFilter.TabIntroduction>
+  <UR.BetterFilter.IntroductionContent>[New Buttons]\n\nStorage Zone - Invert\nA new "Invert" button between "Clear All" and "Allow All" flips the allow/disallow state of every item in one click. Filter statuses are not affected.\n\nStorage Zone - Expand/Collapse One Level\nTwo arrow buttons beside the search bar expand or collapse the item category tree one level at a time, avoiding the lag of expanding all categories at once.\n\nStorage Zone - Paste Settings\nRight-click the "Paste Settings" gizmo to access two overlay modes in addition to vanilla overwrite:\n  · Add Allowed (OR): currently disallowed + clipboard allowed → allowed\n  · Add Disallowed (AND): currently allowed + clipboard disallowed → disallowed\nHP and quality ranges remain unchanged for these special paste operations.\n\nPolicy Management - Copy/Paste\nOutfit and food policy dialogs now include Copy and Paste buttons, each with an independent clipboard. Paste offers Overwrite, Add Allowed, and Add Disallowed modes.\n\nPolicy Management - Advanced Filter\nOutfit and food policy dialogs now include an "Advanced Filter" button that opens the filter-component dialog. The preview is context-aware: apparel policies show only apparel items; food policies show only items with Nutrition > 0.\n\n[New Filters]\n\nThis mod adds 10 SpecialThingFilter workers in 5 complementary pairs:\n  · Perishable / Non-Perishable — whether refrigeration is needed\n  · Deteriorating / Non-Deteriorating — whether it degrades outdoors\n  · Has Quality / No Quality — whether it has quality grades\n  · Has Hit Points / No Hit Points — whether it has durability\n  · Non-Stackable / Stackable — stack limit is 1 or 2+\nAll filters are based on static ThingDef properties for predictable results.\n\n[Filter Category]\n\nThese new filters, together with selected vanilla static-property filters, are grouped under a new "Filter" category at the top of the filter tree.\n\n[Apply Filter]\n\nThe "Apply" button in the filter category pushes filter-worker states down to individual ThingDefs (disallowed filter → disallow matching items) and then re-allows the filter workers. The list of participating filters can be configured in mod settings. Only static-property filters are recommended.</UR.BetterFilter.IntroductionContent>
+
+  <!-- ── Settings ── -->
+  <UR.BetterFilter.TabAppliable>Applicable Filter Workers</UR.BetterFilter.TabAppliable>
+  <UR.BetterFilter.TabAppliableDesc>'Apply' in this mod only applies to the following Filters. By default, only static ThingDef property filters (non-behavioral) are included.</UR.BetterFilter.TabAppliableDesc>
+
+</LanguageData>

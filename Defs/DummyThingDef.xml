@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+  <!-- Safe dummy: burnable (Flammability&gt;0), rottable, quality, HP, biocodable.
+       Apparel/weapon-specific workers are patched separately (see Patch_DummyUnfixableWorkers).
+       Must NOT be a real apparel/weapon — PawnApparelGenerator etc. would crash. -->
+  <ThingDef>
+    <defName>UR_DummyFilterItem</defName>
+    <label>advanced filter</label>
+    <description>Create and apply multiple layers of filters for advanced use.</description>
+    <category>Item</category>
+    <tickerType>Rare</tickerType>
+    <useHitPoints>true</useHitPoints>
+    <thingClass>ThingWithComps</thingClass>
+    <thingCategories>
+      <li>UR_BetterFilter</li>
+    </thingCategories>
+    <statBases>
+      <!-- burnableByRecipe → true (covers Burnable / AllowBurnableApparel / AllowBurnableWeapons) -->
+      <Flammability>1.0</Flammability>
+    </statBases>
+    <comps>
+      <!-- Fresh &amp; Rotten (rotDestroys=false → AllowRotten; has Rottable → AllowFresh) -->
+      <li Class="CompProperties_Rottable">
+        <daysToRotStart>999</daysToRotStart>
+        <rotDestroys>false</rotDestroys>
+      </li>
+      <!-- Biocoded (covers BiocodedApparel via patch) -->
+      <li Class="CompProperties_Biocodable"/>
+      <!-- Quality (covers UR_AllowQuality) -->
+      <li><compClass>CompQuality</compClass></li>
+    </comps>
+  </ThingDef>
+
+  <!-- Safe dummy: non-burnable (no Flammability → burnableByRecipe=false, covers NonBurnable).
+       No weapon tags — BiocodedWeapons / NonBiocodedWeapons patched separately. -->
+  <ThingDef>
+    <defName>UR_DummyApplyFilterItem</defName>
+    <label>apply filter</label>
+    <description>Applies filter worker decisions as explicit ThingDef allowances.</description>
+    <category>Item</category>
+    <tickerType>Rare</tickerType>
+    <useHitPoints>true</useHitPoints>
+    <thingClass>ThingWithComps</thingClass>
+    <thingCategories>
+      <li>UR_BetterFilter</li>
+    </thingCategories>
+    <comps>
+      <!-- Biocoded (covers BiocodedWeapons via patch) -->
+      <li Class="CompProperties_Biocodable"/>
+      <!-- Quality (covers UR_AllowQuality) -->
+      <li><compClass>CompQuality</compClass></li>
+    </comps>
+  </ThingDef>
+
+</Defs>

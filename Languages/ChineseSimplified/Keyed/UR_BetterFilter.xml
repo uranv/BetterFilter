@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+  <!-- ── 顶栏 ── -->
+  <UR.BetterFilter.New>新建</UR.BetterFilter.New>
+  <UR.BetterFilter.FilterWorker>模块过滤器</UR.BetterFilter.FilterWorker>
+  <UR.BetterFilter.ModFilter>模组过滤器</UR.BetterFilter.ModFilter>
+  <UR.BetterFilter.NumericFilter>数值过滤器</UR.BetterFilter.NumericFilter>
+  <UR.BetterFilter.CategoryFilter>类别过滤器</UR.BetterFilter.CategoryFilter>
+  <UR.BetterFilter.EnumFilter>枚举过滤器</UR.BetterFilter.EnumFilter>
+  <UR.BetterFilter.Save>保存</UR.BetterFilter.Save>
+  <UR.BetterFilter.Load>加载</UR.BetterFilter.Load>
+  <UR.BetterFilter.Apply>应用</UR.BetterFilter.Apply>
+
+  <!-- ── 储存筛选树 ── -->
+  <UR.BetterFilter.OpenAdvanced>打开</UR.BetterFilter.OpenAdvanced>
+  <UR.BetterFilter.ApplyFilter>应用</UR.BetterFilter.ApplyFilter>
+  <UR.BetterFilter.Invert>反选</UR.BetterFilter.Invert>  
+  <UR.BetterFilter.HitPoints>耐久度</UR.BetterFilter.HitPoints>
+  <ExpandOneLevel>展开一级</ExpandOneLevel>
+  <CollapseOneLevel>收起一级</CollapseOneLevel>
+
+  <!-- ── 高级过滤器对话框 ── -->
+  <UR.BetterFilter.PreviewAllowItemCount>预览 (允许物品数: {0})</UR.BetterFilter.PreviewAllowItemCount>
+  <UR.BetterFilter.ManualOverrides>手动覆盖 ({0})</UR.BetterFilter.ManualOverrides>
+  <UR.BetterFilter.Add>添加</UR.BetterFilter.Add>
+  <UR.BetterFilter.NoActiveOverrides>无活跃覆盖项。点击「添加」手动允许或禁止特定物品。</UR.BetterFilter.NoActiveOverrides>
+
+  <!-- ── 标准控制按键 ── -->
+  <UR.BetterFilter.DeleteModuleTooltip>删除此过滤器模块</UR.BetterFilter.DeleteModuleTooltip>
+  <UR.BetterFilter.RemoveLastAddedTooltip>移除最后添加的项目</UR.BetterFilter.RemoveLastAddedTooltip>
+  <UR.BetterFilter.AddItemTooltip>添加一个项目到此过滤器</UR.BetterFilter.AddItemTooltip>
+
+  <!-- ── 过滤器组件标签 ── -->
+  <UR.BetterFilter.WhiteList>(白名单)</UR.BetterFilter.WhiteList>
+  <UR.BetterFilter.BlackList>(黑名单)</UR.BetterFilter.BlackList>
+  <UR.BetterFilter.SelectFilter>选择过滤器...</UR.BetterFilter.SelectFilter>
+  <UR.BetterFilter.NoModsSelected>选择模组...</UR.BetterFilter.NoModsSelected>
+  <UR.BetterFilter.NoCategoriesSelected>选择分类...</UR.BetterFilter.NoCategoriesSelected>
+
+  <!-- ── 模组过滤器 ── -->
+  <UR.BetterFilter.RemoveMod>-</UR.BetterFilter.RemoveMod>
+  <UR.BetterFilter.RemoveLastAddedModTooltip>移除最后添加的模组</UR.BetterFilter.RemoveLastAddedModTooltip>
+  <UR.BetterFilter.AddMod>+</UR.BetterFilter.AddMod>
+  <UR.BetterFilter.AddModTooltip>添加一个模组到此过滤器</UR.BetterFilter.AddModTooltip>
+
+  <!-- ── 数值过滤器 ── -->
+  <UR.BetterFilter.StackLimit>堆叠上限</UR.BetterFilter.StackLimit>
+  <UR.BetterFilter.MassKg>重量 (kg)</UR.BetterFilter.MassKg>
+  <UR.BetterFilter.MaxValue>最大值：</UR.BetterFilter.MaxValue>
+  <UR.BetterFilter.MinValue>最小值：</UR.BetterFilter.MinValue>
+  <UR.BetterFilter.SelectPropertyTooltip>选择数值属性</UR.BetterFilter.SelectPropertyTooltip>
+  <UR.BetterFilter.Loose>(宽松)</UR.BetterFilter.Loose>
+  <UR.BetterFilter.Strict>(严格)</UR.BetterFilter.Strict>
+  <UR.BetterFilter.LooseToggle>宽</UR.BetterFilter.LooseToggle>
+  <UR.BetterFilter.StrictToggle>严</UR.BetterFilter.StrictToggle>
+  <UR.BetterFilter.Min>Min:</UR.BetterFilter.Min>
+  <UR.BetterFilter.Max>Max:</UR.BetterFilter.Max>
+
+  <!-- ── 提示 ── -->
+  <UR.BetterFilter.WhitelistWorkerTooltip>白名单：允许该过滤器的匹配物品</UR.BetterFilter.WhitelistWorkerTooltip>
+  <UR.BetterFilter.BlacklistWorkerTooltip>黑名单：禁止该过滤器的匹配物品</UR.BetterFilter.BlacklistWorkerTooltip>
+  <UR.BetterFilter.WhitelistModTooltip>白名单：允许来自选中模组的物品</UR.BetterFilter.WhitelistModTooltip>
+  <UR.BetterFilter.BlacklistModTooltip>黑名单：禁止来自选中模组的物品</UR.BetterFilter.BlacklistModTooltip>
+  <UR.BetterFilter.WhitelistNumericTooltip>白名单：允许数值在范围内的物品</UR.BetterFilter.WhitelistNumericTooltip>
+  <UR.BetterFilter.BlacklistNumericTooltip>黑名单：禁止数值在范围内的物品</UR.BetterFilter.BlacklistNumericTooltip>
+  <UR.BetterFilter.LooseTooltip>宽松：允许不具备此属性的物品通过</UR.BetterFilter.LooseTooltip>
+  <UR.BetterFilter.StrictTooltip>严格：禁止不具备此属性的物品通过</UR.BetterFilter.StrictTooltip>
+
+  <!-- ── 类别过滤器 ── -->
+  <UR.BetterFilter.RemoveCategory>-</UR.BetterFilter.RemoveCategory>
+  <UR.BetterFilter.RemoveLastAddedCategoryTooltip>移除最后添加的分类</UR.BetterFilter.RemoveLastAddedCategoryTooltip>
+  <UR.BetterFilter.AddCategory>+</UR.BetterFilter.AddCategory>
+  <UR.BetterFilter.AddCategoryTooltip>添加一个分类到此过滤器</UR.BetterFilter.AddCategoryTooltip>
+  <UR.BetterFilter.WhitelistCategoryTooltip>白名单：允许选中分类中的物品</UR.BetterFilter.WhitelistCategoryTooltip>
+  <UR.BetterFilter.BlacklistCategoryTooltip>黑名单：禁止选中分类中的物品</UR.BetterFilter.BlacklistCategoryTooltip>
+
+  <!-- ── 枚举过滤器 ── -->
+  <UR.BetterFilter.WeaponTags>武器-标签</UR.BetterFilter.WeaponTags>
+  <UR.BetterFilter.TradeTags>贸易-标签</UR.BetterFilter.TradeTags>
+  <UR.BetterFilter.TechLevel>科技等级</UR.BetterFilter.TechLevel>
+  <UR.BetterFilter.ApparelTags>服装-标签</UR.BetterFilter.ApparelTags>
+  <UR.BetterFilter.ApparelLayer>服装层级</UR.BetterFilter.ApparelLayer>
+  <UR.BetterFilter.BodyCoverage>身体覆盖部位</UR.BetterFilter.BodyCoverage>
+  <UR.BetterFilter.SelectEnumProperty>选择枚举属性...</UR.BetterFilter.SelectEnumProperty>
+  <UR.BetterFilter.SelectEnumValueTooltip>选择一个枚举值</UR.BetterFilter.SelectEnumValueTooltip>
+
+  <!-- ── 命令行输入 ── -->
+  <UR.BetterFilter.CommandInput>命令行输入</UR.BetterFilter.CommandInput>
+  <UR.BetterFilter.CommandPrompt>输入过滤器命令（例：worker -d SomeDef -b）：</UR.BetterFilter.CommandPrompt>
+  <UR.BetterFilter.UnknownCommand>未知命令类型：{0}</UR.BetterFilter.UnknownCommand>
+  <UR.BetterFilter.WorkerNoDefName>Worker：缺少 -d defName 参数。</UR.BetterFilter.WorkerNoDefName>
+  <UR.BetterFilter.WorkerNoValidDef>Worker：未找到给定名称的有效 SpecialThingFilterDef。</UR.BetterFilter.WorkerNoValidDef>
+  <UR.BetterFilter.CmdDupD>-d 指定了多次。</UR.BetterFilter.CmdDupD>
+  <UR.BetterFilter.CmdDupB>-b 指定了多次。</UR.BetterFilter.CmdDupB>
+  <UR.BetterFilter.CmdDupU>-u 指定了多次。</UR.BetterFilter.CmdDupU>
+  <UR.BetterFilter.CmdNoD>缺少必需的 -d 关键词。</UR.BetterFilter.CmdNoD>
+  <UR.BetterFilter.CmdNoDefNames>-d 后未提供 defName。</UR.BetterFilter.CmdNoDefNames>
+  <UR.BetterFilter.CmdBadDefs>未知 defName：{0}。使用 -u 跳过无效名称。</UR.BetterFilter.CmdBadDefs>
+  <UR.BetterFilter.CmdNoValidDef>未找到有效的 SpecialThingFilterDef。</UR.BetterFilter.CmdNoValidDef>
+  <UR.BetterFilter.CmdBadMods>未知 PackageId：{0}。使用 -u 跳过无效 ID。</UR.BetterFilter.CmdBadMods>
+  <UR.BetterFilter.CmdNoValidMod>未找到有效的模组 PackageId。</UR.BetterFilter.CmdNoValidMod>
+  <UR.BetterFilter.CmdBadCats>未知 ThingCategoryDef：{0}。使用 -u 跳过无效名称。</UR.BetterFilter.CmdBadCats>
+  <UR.BetterFilter.CmdDupL>-l 指定了多次。</UR.BetterFilter.CmdDupL>
+  <UR.BetterFilter.CmdDupV>-v 指定了多次。</UR.BetterFilter.CmdDupV>
+  <UR.BetterFilter.CmdValueNoProp>-d 后缺少属性名（StackLimit 或 Mass）。</UR.BetterFilter.CmdValueNoProp>
+  <UR.BetterFilter.CmdValueNoV>缺少 -v 及两个数值（最小值 最大值）。</UR.BetterFilter.CmdValueNoV>
+  <UR.BetterFilter.CmdValueBadProp>未知属性：{0}。可用：StackLimit, Mass 或 '路径.到.int'。</UR.BetterFilter.CmdValueBadProp>
+  <UR.BetterFilter.CmdValueMultiD>-d 仅接受一个属性名称。</UR.BetterFilter.CmdValueMultiD>
+  <UR.BetterFilter.CmdBadEnumVals>未知枚举值：{0}。使用 -u 跳过无效值。</UR.BetterFilter.CmdBadEnumVals>
+
+  <UR.BetterFilter.SaveEmptyName>请输入文件名。</UR.BetterFilter.SaveEmptyName>
+  <UR.BetterFilter.SaveDuplicateName>已存在同名过滤器组合。</UR.BetterFilter.SaveDuplicateName>
+  <UR.BetterFilter.Rename>重命名</UR.BetterFilter.Rename>
+  <UR.BetterFilter.Overwrite>覆盖</UR.BetterFilter.Overwrite>
+  <UR.BetterFilter.Append>追加</UR.BetterFilter.Append>
+  <UR.BetterFilter.Filename>文件名：</UR.BetterFilter.Filename>
+  <UR.BetterFilter.NoSavedFilters>无已保存的过滤器组合。</UR.BetterFilter.NoSavedFilters>
+
+  <!-- ── 粘贴储存设置 ── -->
+  <UR.BetterFilter.RightClickPaste>右键：追加允许/禁止物品</UR.BetterFilter.RightClickPaste>
+  <UR.BetterFilter.PasteOverwrite>覆盖(原版)</UR.BetterFilter.PasteOverwrite>
+  <UR.BetterFilter.PasteAnd>追加禁止(∧)</UR.BetterFilter.PasteAnd>
+  <UR.BetterFilter.PasteOr>追加允许(∨)</UR.BetterFilter.PasteOr>
+  <UR.BetterFilter.PasteAndMessage>从剪贴板追加禁止项目。</UR.BetterFilter.PasteAndMessage>
+  <UR.BetterFilter.PasteOrMessage>从剪贴板追加允许项目。</UR.BetterFilter.PasteOrMessage>
+
+  <!-- ── 物品过滤器 ── -->
+  <UR.BetterFilter.ItemFilter>物品过滤器</UR.BetterFilter.ItemFilter>
+  <UR.BetterFilter.CmdBadItemDefs>未知 ThingDef：{0}。使用 -u 跳过无效名称。</UR.BetterFilter.CmdBadItemDefs>
+
+  <!-- ── 储存筛选底部按钮 ── -->
+  <UR.BetterFilter.AdvancedFilter>高级筛选</UR.BetterFilter.AdvancedFilter>
+  <UR.BetterFilter.Copy>复制</UR.BetterFilter.Copy>
+  <UR.BetterFilter.Paste>粘贴</UR.BetterFilter.Paste>
+  <UR.BetterFilter.CopiedApparel>复制着装方案到剪切板。</UR.BetterFilter.CopiedApparel>
+  <UR.BetterFilter.CopiedFood>复制食物方案到剪切板。</UR.BetterFilter.CopiedFood>
+  <UR.BetterFilter.PasteEmpty>剪切板为空。</UR.BetterFilter.PasteEmpty>
+
+  <UR.BetterFilter.ApplyMessage>已应用高级筛选设置。</UR.BetterFilter.ApplyMessage>
+  <UR.BetterFilter.ApplyEmptyWarning>无可应用的筛选器。请在模组设置中勾选至少一个筛选器。</UR.BetterFilter.ApplyEmptyWarning>
+  <UR.BetterFilter.ResetDefault>恢复默认</UR.BetterFilter.ResetDefault>
+
+  <!-- ── 设置 - 介绍 ── -->
+  <UR.BetterFilter.TabIntroduction>介绍</UR.BetterFilter.TabIntroduction>
+  <UR.BetterFilter.IntroductionContent>【新增按键】\n\n储存区 - 反选\n在储存设置的"全部清除"与"全部允许"之间新增"反选"按钮，一键反转所有物品的允许/禁止状态。反选不改变过滤器本身的状态。\n\n储存区 - 展开/收起一级\n搜索栏右侧新增 ↕ 展开和收起按钮，可逐级展开/收缩物品筛选树的分类，避免一次性全部展开导致的卡顿。\n\n储存区 - 粘贴区域设置\n右键点击"粘贴区域设置"图标，除原版的覆盖粘贴外，新增两种叠加模式：\n  · 追加允许 (OR)：当前禁止 + 剪贴板允许 → 允许\n  · 追加禁止 (AND)：当前允许 + 剪贴板禁止 → 禁止\n特殊粘贴不修改 HP 与品质范围。\n\n方案管理 - 复制/粘贴\n着装方案和食物方案界面新增"复制""粘贴"按钮。独立于储存区的剪切板，着装与食物各自独立。粘贴同样包含覆盖、追加允许、追加禁止三种模式。\n\n方案管理 - 高级筛选\n着装方案和食物方案界面新增"高级筛选"按钮，打开高级过滤器对话框。预览内容自动限定为对应方案的可适用范围（着装仅显示衣物，食物仅显示营养值>0的物品）。\n\n【新增筛选器】\n\n本模组新增 10 个 SpecialThingFilter，按属性对分为 5 组：\n  · 可腐坏 / 不会腐坏 — 是否需要冷藏\n  · 可损耗 / 不会损耗 — 置于室外是否劣化\n  · 有品质 / 无品质 — 是否具有品质等级\n  · 有耐久 / 无耐久 — 是否具有耐久度\n  · 不可堆叠 / 可堆叠 — 堆叠上限为 1 或 ≥ 2\n所有新增筛选器均基于 ThingDef 的静态属性，计算结果可预测。\n\n【筛选器分类】\n\n以上新增筛选器与原版的部分静态属性筛选器统一归入置顶的"筛选器"分类，置于筛选树顶部，便于集中使用。\n\n【应用筛选器】\n\n点击分类中的"应用"按钮，会将选中筛选器的允许/禁止状态向下传递到具体物品（禁止筛选器 → 禁止对应物品），再将筛选器本身置为允许。可在模组设置中配置参与此操作的筛选器列表，推荐仅包含静态属性类筛选器。</UR.BetterFilter.IntroductionContent>
+
+  <!-- ── 设置 ── -->
+  <UR.BetterFilter.TabAppliable>可应用的过滤器</UR.BetterFilter.TabAppliable>
+  <UR.BetterFilter.TabAppliableDesc>本模组的'应用'功能仅处理以下选中的过滤器，默认包含只依赖 ThingDef 属性的过滤器（非行为类）。</UR.BetterFilter.TabAppliableDesc>
+
+</LanguageData>

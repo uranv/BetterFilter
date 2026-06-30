@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+  <UR_AllowNonStackable.label>允许不可堆叠</UR_AllowNonStackable.label>
+  <UR_AllowNonStackable.description>允许不可堆叠的物品（堆叠上限为1）。</UR_AllowNonStackable.description>
+</LanguageData>

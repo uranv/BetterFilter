@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+  <UR_AllowPerishable.label>允许可腐坏</UR_AllowPerishable.label>
+  <UR_AllowPerishable.description>允许会腐坏且需要冷藏的物品。</UR_AllowPerishable.description>
+</LanguageData>

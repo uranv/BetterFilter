@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+  <ThingCategoryDef>
+    <defName>UR_BetterFilter</defName>
+    <label>filter</label>
+    <description>Extended condition filters for storage settings.</description>
+    <parent>Root</parent>
+  </ThingCategoryDef>
+
+</Defs>

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+  <UR_AllowHitPoints.label>允许有耐久</UR_AllowHitPoints.label>
+  <UR_AllowHitPoints.description>允许具有耐久度且可被损坏的物品。</UR_AllowHitPoints.description>
+</LanguageData>

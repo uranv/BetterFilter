@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+  <UR_DummyApplyFilterItem.label>应用筛选器</UR_DummyApplyFilterItem.label>
+  <UR_DummyApplyFilterItem.description>将筛选器模块的禁止结果实际应用到物品勾选状态。</UR_DummyApplyFilterItem.description>
+</LanguageData>

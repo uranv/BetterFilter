@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+  <SpecialThingFilterDef>
+    <defName>UR_AllowPerishable</defName>
+    <label>allow perishable</label>
+    <description>Allow things that rot and require refrigeration.</description>
+    <parentCategory>Root</parentCategory>
+    <allowedByDefault>true</allowedByDefault>
+    <saveKey>allowPerishable</saveKey>
+    <workerClass>BetterFilter.Contents.SpecialThingFilterWorker.SpecialThingFilterWorker_AllowPerishable</workerClass>
+  </SpecialThingFilterDef>
+
+  <SpecialThingFilterDef>
+    <defName>UR_AllowDeteriorating</defName>
+    <label>allow deteriorating</label>
+    <description>Allow things that deteriorate when left outdoors.</description>
+    <parentCategory>Root</parentCategory>
+    <allowedByDefault>true</allowedByDefault>
+    <saveKey>allowDeteriorating</saveKey>
+    <workerClass>BetterFilter.Contents.SpecialThingFilterWorker.SpecialThingFilterWorker_AllowDeteriorating</workerClass>
+  </SpecialThingFilterDef>
+
+  <SpecialThingFilterDef>
+    <defName>UR_AllowQuality</defName>
+    <label>allow quality</label>
+    <description>Allow things that have quality grades.</description>
+    <parentCategory>Root</parentCategory>
+    <allowedByDefault>true</allowedByDefault>
+    <saveKey>allowQuality</saveKey>
+    <workerClass>BetterFilter.Contents.SpecialThingFilterWorker.SpecialThingFilterWorker_AllowQuality</workerClass>
+  </SpecialThingFilterDef>
+
+  <SpecialThingFilterDef>
+    <defName>UR_AllowHitPoints</defName>
+    <label>allow hit points</label>
+    <description>Allow things that have durability and can be damaged.</description>
+    <parentCategory>Root</parentCategory>
+    <allowedByDefault>true</allowedByDefault>
+    <saveKey>allowHitPoints</saveKey>
+    <workerClass>BetterFilter.Contents.SpecialThingFilterWorker.SpecialThingFilterWorker_AllowHitPoints</workerClass>
+  </SpecialThingFilterDef>
+
+  <SpecialThingFilterDef>
+    <defName>UR_AllowNotPerishable</defName>
+    <label>allow non-perishable</label>
+    <description>Allow things that do not rot and do not require refrigeration.</description>
+    <parentCategory>Root</parentCategory>
+    <allowedByDefault>true</allowedByDefault>
+    <saveKey>allowNotPerishable</saveKey>
+    <workerClass>BetterFilter.Contents.SpecialThingFilterWorker.SpecialThingFilterWorker_AllowNotPerishable</workerClass>
+  </SpecialThingFilterDef>
+
+  <SpecialThingFilterDef>
+    <defName>UR_AllowNotDeteriorating</defName>
+    <label>allow non-deteriorating</label>
+    <description>Allow things that do not deteriorate when left outdoors.</description>
+    <parentCategory>Root</parentCategory>
+    <allowedByDefault>true</allowedByDefault>
+    <saveKey>allowNotDeteriorating</saveKey>
+    <workerClass>BetterFilter.Contents.SpecialThingFilterWorker.SpecialThingFilterWorker_AllowNotDeteriorating</workerClass>
+  </SpecialThingFilterDef>
+
+  <SpecialThingFilterDef>
+    <defName>UR_AllowNoQuality</defName>
+    <label>allow no quality</label>
+    <description>Allow things that do not have quality grades.</description>
+    <parentCategory>Root</parentCategory>
+    <allowedByDefault>true</allowedByDefault>
+    <saveKey>allowNoQuality</saveKey>
+    <workerClass>BetterFilter.Contents.SpecialThingFilterWorker.SpecialThingFilterWorker_AllowNoQuality</workerClass>
+  </SpecialThingFilterDef>
+
+  <SpecialThingFilterDef>
+    <defName>UR_AllowNoHitPoints</defName>
+    <label>allow no hit points</label>
+    <description>Allow things that do not have durability and cannot be damaged.</description>
+    <parentCategory>Root</parentCategory>
+    <allowedByDefault>true</allowedByDefault>
+    <saveKey>allowNoHitPoints</saveKey>
+    <workerClass>BetterFilter.Contents.SpecialThingFilterWorker.SpecialThingFilterWorker_AllowNoHitPoints</workerClass>
+  </SpecialThingFilterDef>
+
+  <SpecialThingFilterDef>
+    <defName>UR_AllowNonStackable</defName>
+    <label>allow non-stackable</label>
+    <description>Allow items that do not stack (stack limit is 1).</description>
+    <parentCategory>Root</parentCategory>
+    <allowedByDefault>true</allowedByDefault>
+    <saveKey>allowNonStackable</saveKey>
+    <workerClass>BetterFilter.Contents.SpecialThingFilterWorker.SpecialThingFilterWorker_AllowNonStackable</workerClass>
+  </SpecialThingFilterDef>
+
+  <SpecialThingFilterDef>
+    <defName>UR_AllowStackable</defName>
+    <label>allow stackable</label>
+    <description>Allow items that can stack (stack limit is 2 or more).</description>
+    <parentCategory>Root</parentCategory>
+    <allowedByDefault>true</allowedByDefault>
+    <saveKey>allowStackable</saveKey>
+    <workerClass>BetterFilter.Contents.SpecialThingFilterWorker.SpecialThingFilterWorker_AllowStackable</workerClass>
+  </SpecialThingFilterDef>
+
+</Defs>

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+  <UR_AllowNotDeteriorating.label>允许不会老化</UR_AllowNotDeteriorating.label>
+  <UR_AllowNotDeteriorating.description>允许放置在室外不会老化的物品。</UR_AllowNotDeteriorating.description>
+</LanguageData>

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+  <UR_AllowStackable.label>允许可堆叠</UR_AllowStackable.label>
+  <UR_AllowStackable.description>允许可以堆叠的物品（堆叠上限为2或以上）。</UR_AllowStackable.description>
+</LanguageData>
