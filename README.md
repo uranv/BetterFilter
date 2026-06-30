@@ -51,8 +51,7 @@ All new filters are based on an item's inherent properties; results are predicta
 
 * The 【Apply】button in this category pushes filter-worker states down to individual items (disallowed filter → disallow matching items), then resets the filter workers to allowed. The list of participating filters can be configured in mod settings.
 
-
-![https://raw.githubusercontent.com/uranv/repository/refs/heads/main/fig/e24b519c79b59e64218ae83f9e6e8a76.png](e24b519c79b59e64218ae83f9e6e8a76.png)
+<img src="./Preview/e24b519c79b59e64218ae83f9e6e8a76.png" alt="e24b519c79b59e64218ae83f9e6e8a76" style="zoom: 50%;" />
 
 ## Advanced Filter
 
@@ -68,8 +67,7 @@ The mod adds an 【Advanced Filter】entry point in both the storage filter and 
 
 * Numeric and enum filters support Loose (allow items without the property) / Strict (disallow items without the property) strategy — click the option icon at the top-right to toggle
 
-
-![https://raw.githubusercontent.com/uranv/repository/refs/heads/main/fig/984fa83ba36dcf55c4d1a71e6547e23a.png](984fa83ba36dcf55c4d1a71e6547e23a.png)
+<img src="./Preview/984fa83ba36dcf55c4d1a71e6547e23a.png" alt="984fa83ba36dcf55c4d1a71e6547e23a" style="zoom: 33%;" />
 
 ### About Each Filter Type
 
