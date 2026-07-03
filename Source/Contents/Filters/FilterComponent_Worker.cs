@@ -110,12 +110,13 @@ public class FilterComponent_Worker : FilterComponent
             var allowed = BetterFilterMod.Settings?.AllowedFilters
                 ?? Enumerable.Empty<SpecialThingFilterDef>();
             var existing = new HashSet<SpecialThingFilterDef>(selectedDefs);
-            var opts = allowed
+            var items = allowed
                 .Where(d => !existing.Contains(d))
-                .Select(d => new FloatMenuOption(d.LabelCap,
-                    () => { selectedDefs.Add(d); dialog.MarkDirty(); }))
+                .Select(d => ((string) d.LabelCap,
+                    (Action)(() => { selectedDefs.Add(d); dialog.MarkDirty(); })))
                 .ToList();
-            Find.WindowStack.Add(new FloatMenu(opts));
+            Find.WindowStack.Add(new Dialog.Dialog_SearchableSelect(
+                "UR.BetterFilter.FilterWorker".Translate(), items));
         }, "UR.BetterFilter.AddItemTooltip");
     }
 }

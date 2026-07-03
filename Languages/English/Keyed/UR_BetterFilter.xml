@@ -36,6 +36,7 @@
   <UR.BetterFilter.BlackList>(Black List)</UR.BetterFilter.BlackList>
   <UR.BetterFilter.SelectFilter>Select Filter...</UR.BetterFilter.SelectFilter>
   <UR.BetterFilter.NoModsSelected>Select Mod...</UR.BetterFilter.NoModsSelected>
+  <UR.BetterFilter.NoSearchResults>(No matching results)</UR.BetterFilter.NoSearchResults>
   <UR.BetterFilter.NoCategoriesSelected>Select Category...</UR.BetterFilter.NoCategoriesSelected>
 
   <!-- ── Mod filter ── -->

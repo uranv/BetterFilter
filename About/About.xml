@@ -18,5 +18,5 @@
 			<downloadUrl>https://github.com/pardeike/HarmonyRimWorld/releases/latest</downloadUrl>
 		</li>
   </modDependencies>
-  <modVersion IgnoreIfNoMatchingField="True">1.0.1</modVersion>
+  <modVersion IgnoreIfNoMatchingField="True">1.0.2</modVersion>
 </ModMetaData>

@@ -70,7 +70,7 @@ public class Dialog_AdvancedFilters : Window
         closeOnClickedOutside = false;
         closeOnAccept = false;
         absorbInputAroundWindow = true;
-        layer = WindowLayer.Super;
+        layer = WindowLayer.Dialog;
         sourceFilter = source;
         ContextDefs = contextDefs;
         workingFilter = new ThingFilter();
@@ -291,23 +291,21 @@ public class Dialog_AdvancedFilters : Window
         if (Widgets.ButtonText(addRect, "UR.BetterFilter.Add".Translate()))
         {
             var addDefs = ContextDefs ?? EverStorableDefs;
-            var opts = addDefs
+            var items = addDefs
                 .Where(d => !validComps.Any(it => it.selectedDef == d))
                 .OrderBy(d => d.LabelCap.ToString())
-                .Select(d => new FloatMenuOption(
-                    (string)d.LabelCap,
-                    () =>
+                .Select(d => ((string) d.LabelCap, (System.Action)(() =>
+                {
+                    bool componentAllows = componentAllowedDefs.Contains(d);
+                    components.Add(new FilterComponent_Item
                     {
-                        bool componentAllows = componentAllowedDefs.Contains(d);
-                        components.Add(new FilterComponent_Item
-                        {
-                            selectedDef = d,
-                            isWhitelist = !componentAllows
-                        });
-                        _dirty = true;
-                    }))
-                .ToList();
-            Find.WindowStack.Add(new FloatMenu(opts));
+                        selectedDef = d,
+                        isWhitelist = !componentAllows
+                    });
+                    _dirty = true;
+                }))).ToList();
+            Find.WindowStack.Add(new Dialog.Dialog_SearchableSelect(
+                "UR.BetterFilter.ItemFilter".Translate(), items));
         }
 
         // Scrollable override list

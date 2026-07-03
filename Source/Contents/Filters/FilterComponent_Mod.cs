@@ -138,16 +138,17 @@ public class FilterComponent_Mod : FilterComponent
         Utils.FilterDrawer.DrawPlusBottomRight(inner, () =>
         {
             var existing = new HashSet<string>(packageIds);
-            var opts = LoadedModManager.RunningMods
+            var items = LoadedModManager.RunningMods
                 .Where(m => !existing.Contains(m.PackageId))
                 .OrderBy(m => m.Name)
-                .Select(m => new FloatMenuOption(m.Name, () =>
+                .Select(m => (m.Name, (Action)(() =>
                 {
                     packageIds.Add(m.PackageId);
                     _cachedModDefs = null;
                     dialog.MarkDirty();
-                })).ToList();
-            Find.WindowStack.Add(new FloatMenu(opts));
+                }))).ToList();
+            Find.WindowStack.Add(new Dialog.Dialog_SearchableSelect(
+                "UR.BetterFilter.ModFilter".Translate(), items));
         }, "UR.BetterFilter.AddModTooltip");
     }
 }

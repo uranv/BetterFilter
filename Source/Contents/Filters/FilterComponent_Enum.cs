@@ -294,23 +294,25 @@ public class FilterComponent_Enum : FilterComponent
         {
             if (propertyType == null && errorPropertyName == null)
             {
-                var opts = Enum.GetValues(typeof(EnumPropertyType))
+                var items = System.Enum.GetValues(typeof(EnumPropertyType))
                     .Cast<EnumPropertyType>()
-                    .Select(e => new FloatMenuOption(PropertyLabel(e),
-                        () => { propertyType = e; dialog.MarkDirty(); }))
+                    .Select(e => (PropertyLabel(e), (System.Action)(() =>
+                        { propertyType = e; dialog.MarkDirty(); })))
                     .ToList();
-                Find.WindowStack.Add(new FloatMenu(opts));
+                Find.WindowStack.Add(new Dialog.Dialog_SearchableSelect(
+                    "UR.BetterFilter.EnumFilter".Translate(), items));
             }
             else if (propertyType != null)
             {
                 var pt = propertyType.Value;
                 var existing = new HashSet<string>(selectedValues);
-                var opts = GetAllValues(pt)
+                var items = GetAllValues(pt)
                     .Where(v => !existing.Contains(v))
-                    .Select(v => new FloatMenuOption(ValueLabel(pt, v),
-                        () => { selectedValues.Add(v); dialog.MarkDirty(); }))
+                    .Select(v => (ValueLabel(pt, v), (System.Action)(() =>
+                        { selectedValues.Add(v); dialog.MarkDirty(); })))
                     .ToList();
-                Find.WindowStack.Add(new FloatMenu(opts));
+                Find.WindowStack.Add(new Dialog.Dialog_SearchableSelect(
+                    PropertyLabel(pt), items));
             }
         }, "UR.BetterFilter.SelectEnumValueTooltip");
     }

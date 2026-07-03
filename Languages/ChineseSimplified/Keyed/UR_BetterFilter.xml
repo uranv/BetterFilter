@@ -36,6 +36,7 @@
   <UR.BetterFilter.BlackList>(黑名单)</UR.BetterFilter.BlackList>
   <UR.BetterFilter.SelectFilter>选择过滤器...</UR.BetterFilter.SelectFilter>
   <UR.BetterFilter.NoModsSelected>选择模组...</UR.BetterFilter.NoModsSelected>
+  <UR.BetterFilter.NoSearchResults>（无匹配结果）</UR.BetterFilter.NoSearchResults>
   <UR.BetterFilter.NoCategoriesSelected>选择分类...</UR.BetterFilter.NoCategoriesSelected>
 
   <!-- ── 模组过滤器 ── -->

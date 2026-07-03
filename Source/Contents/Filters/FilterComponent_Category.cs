@@ -134,16 +134,17 @@ public class FilterComponent_Category : FilterComponent
         Utils.FilterDrawer.DrawPlusBottomRight(inner, () =>
         {
             var existing = new HashSet<string>(categoryDefNames);
-            var opts = DefDatabase<ThingCategoryDef>.AllDefsListForReading
+            var items = DefDatabase<ThingCategoryDef>.AllDefsListForReading
                 .Where(c => c.DescendantThingDefs.Any() && c != ThingCategoryDefOf.Root && !existing.Contains(c.defName))
                 .OrderBy(c => c.LabelCap.ToString())
-                .Select(c => new FloatMenuOption((string)c.LabelCap, () =>
+                .Select(c => ((string) c.LabelCap, (System.Action)(() =>
                 {
                     categoryDefNames.Add(c.defName);
                     _cachedCategoryDefs = null;
                     dialog.MarkDirty();
-                })).ToList();
-            Find.WindowStack.Add(new FloatMenu(opts));
+                }))).ToList();
+            Find.WindowStack.Add(new Dialog.Dialog_SearchableSelect(
+                "UR.BetterFilter.CategoryFilter".Translate(), items));
         }, "UR.BetterFilter.AddCategoryTooltip");
     }
 }

@@ -233,7 +233,15 @@ public static class Patch_UIButtonOperations
         Listing_TreeThingFilter listing = new Listing_TreeThingFilter(filter, parentFilter,
             forceHiddenDefs, forceHiddenFilters, suppressSmallVolumeTags, state.quickSearch.filter);
         listing.Begin(rect4);
-        listing.ListCategoryChildren(node, openMask, map, visibleRect);
+        Patch_FilterCategoryOrder.IsRenderingTreeUI = true;
+        try
+        {
+            listing.ListCategoryChildren(node, openMask, map, visibleRect);
+        }
+        finally
+        {
+            Patch_FilterCategoryOrder.IsRenderingTreeUI = false;
+        }
         listing.End();
         state.quickSearch.noResultsMatched = listing.matchCount == 0;
         if (Event.current.type == EventType.Layout)

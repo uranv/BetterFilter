@@ -69,6 +69,13 @@ public static class Patch_FilterCategoryOrder
     internal static readonly AccessTools.FieldRef<Listing_TreeThingFilter, ThingFilter>
         GetParentFilter = AccessTools.FieldRefAccess<Listing_TreeThingFilter, ThingFilter>("parentFilter");
 
+    /// <summary>
+    /// True while the storage filter tree is being rendered.  Gates
+    /// Patch_DummyAlwaysVisible so dummy ThingDefs are only transparent
+    /// during UI painting, never during game-logic queries.
+    /// </summary>
+    internal static bool IsRenderingTreeUI;
+
     /// <summary>Exposed so Patch_InjectFilterSliders can read the current display-root
     /// for conditional slider visibility.</summary>
     internal static ThingCategoryDef CurrentDisplayRoot;
