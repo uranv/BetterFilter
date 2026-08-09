@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
@@ -8,11 +9,11 @@ namespace BetterFilter.Contents.Filters;
 
 public class FilterComponent_Category : FilterComponent
 {
-    public List<string> categoryDefNames = new();
+    public List<string> CategoryDefNames = new();
     /// <summary>DefNames that failed to resolve (set by CLI parser in -u mode).</summary>
-    public List<string> errorCategoryNames = new();
-    public bool isWhitelist = true;
-    public bool pendingDelete;
+    public List<string> ErrorCategoryNames = new();
+    public bool IsWhitelist = true;
+    public bool PendingDelete;
 
     private HashSet<ThingDef> _cachedCategoryDefs;
     private int _cachedCategoryHash;
@@ -21,18 +22,18 @@ public class FilterComponent_Category : FilterComponent
     {
         get
         {
-            if (categoryDefNames.Count == 0 && errorCategoryNames.Count == 0)
+            if (CategoryDefNames.Count == 0 && ErrorCategoryNames.Count == 0)
                 return "UR.BetterFilter.NoCategoriesSelected".Translate();
-            if (categoryDefNames.Count == 0)
+            if (CategoryDefNames.Count == 0)
                 return "";
-            return string.Join(", ", categoryDefNames
+            return string.Join(", ", CategoryDefNames
                 .Select(cn => DefDatabase<ThingCategoryDef>.GetNamed(cn)?.LabelCap ?? cn));
         }
     }
 
     private string ErrorText =>
-        errorCategoryNames.Count == 0 ? "" :
-        string.Join(", ", errorCategoryNames.Select(n => "*" + n));
+        ErrorCategoryNames.Count == 0 ? "" :
+        string.Join(", ", ErrorCategoryNames.Select(n => "*" + n));
 
     private string FullDisplayText =>
         (ValidText + "  " + ErrorText).Trim();
@@ -42,17 +43,17 @@ public class FilterComponent_Category : FilterComponent
 
     private HashSet<ThingDef> GetCategoryDefs()
     {
-        int hash = ContentHash(categoryDefNames);
+        var hash = ContentHash(CategoryDefNames);
         if (_cachedCategoryDefs != null && _cachedCategoryHash == hash)
             return _cachedCategoryDefs;
         _cachedCategoryDefs = new HashSet<ThingDef>();
-        if (categoryDefNames.Count == 0) { _cachedCategoryHash = hash; return _cachedCategoryDefs; }
-        foreach (string catName in categoryDefNames)
+        if (CategoryDefNames.Count == 0) { _cachedCategoryHash = hash; return _cachedCategoryDefs; }
+        foreach (var catName in CategoryDefNames)
         {
             var catDef = DefDatabase<ThingCategoryDef>.GetNamed(catName);
             if (catDef != null)
             {
-                foreach (ThingDef def in catDef.DescendantThingDefs)
+                foreach (var def in catDef.DescendantThingDefs)
                     _cachedCategoryDefs.Add(def);
             }
         }
@@ -62,25 +63,25 @@ public class FilterComponent_Category : FilterComponent
 
     private static int ContentHash(List<string> items)
     {
-        int h = 0;
-        foreach (string s in items)
+        var h = 0;
+        foreach (var s in items)
             h = unchecked(h * 31 + s.GetHashCode());
         return h;
     }
 
     public override bool AllowsDef(ThingDef def)
     {
-        if (categoryDefNames.Count == 0) return true;
-        bool matches = GetCategoryDefs().Contains(def);
-        return isWhitelist ? matches : !matches;
+        if (CategoryDefNames.Count == 0) return true;
+        var matches = GetCategoryDefs().Contains(def);
+        return IsWhitelist ? matches : !matches;
     }
 
     public override string ToCommandLine()
     {
         var parts = new List<string> { "cat", "-d" };
-        parts.AddRange(categoryDefNames);
-        parts.AddRange(errorCategoryNames);
-        if (!isWhitelist) parts.Add("-b");
+        parts.AddRange(CategoryDefNames);
+        parts.AddRange(ErrorCategoryNames);
+        if (!IsWhitelist) parts.Add("-b");
         parts.Add("-u");
         return string.Join(" ", parts);
     }
@@ -88,58 +89,58 @@ public class FilterComponent_Category : FilterComponent
     public override void Draw(Rect rect, Dialog.Dialog_AdvancedFilters dialog, int index)
     {
         Widgets.DrawBoxSolid(rect, new Color(0.18f, 0.18f, 0.2f));
-        Rect inner = rect.ContractedBy(4f);
+        var inner = rect.ContractedBy(4f);
 
-        float contentX = Utils.FilterDrawer.DrawBadge(inner, isWhitelist, false,
-            () => { isWhitelist = !isWhitelist; dialog.MarkDirty(); },
+        var contentX = Utils.FilterDrawer.DrawBadge(inner, IsWhitelist, false,
+            () => { IsWhitelist = !IsWhitelist; dialog.MarkDirty(); },
             "UR.BetterFilter.WhitelistCategoryTooltip", "UR.BetterFilter.BlacklistCategoryTooltip");
 
-        Utils.FilterDrawer.DrawDeleteTopRight(inner, ref pendingDelete);
+        Utils.FilterDrawer.DrawDeleteTopRight(inner, ref PendingDelete);
 
-        float textMaxW = Utils.FilterDrawer.TextMaxWidth(inner, contentX);
-        float topY = inner.y + Utils.FilterDrawer.BadgeMargin;
+        var textMaxW = Utils.FilterDrawer.TextMaxWidth(inner, contentX);
+        var topY = inner.y + Utils.FilterDrawer.BadgeMargin;
 
-        if (errorCategoryNames.Count > 0 && categoryDefNames.Count > 0)
+        if (ErrorCategoryNames.Count > 0 && CategoryDefNames.Count > 0)
         {
-            float validH = Text.CalcHeight(ValidText, textMaxW);
+            var validH = Text.CalcHeight(ValidText, textMaxW);
             Widgets.Label(new Rect(contentX, topY, textMaxW, validH), ValidText);
-            float afterX = contentX + Text.CalcSize(ValidText).x + 4f;
-            float errorW = textMaxW - (afterX - contentX);
+            var afterX = contentX + Text.CalcSize(ValidText).x + 4f;
+            var errorW = textMaxW - (afterX - contentX);
             if (errorW < 40f) afterX = contentX;
-            Color old = GUI.color;
+            var old = GUI.color;
             GUI.color = Color.gray;
             Widgets.Label(new Rect(afterX, topY, textMaxW - (afterX - contentX), validH), ErrorText);
             GUI.color = old;
         }
-        else if (categoryDefNames.Count == 0 && errorCategoryNames.Count > 0)
+        else if (CategoryDefNames.Count == 0 && ErrorCategoryNames.Count > 0)
         {
-            Color old = GUI.color;
+            var old = GUI.color;
             GUI.color = Color.gray;
-            float h = Text.CalcHeight(ErrorText, textMaxW);
+            var h = Text.CalcHeight(ErrorText, textMaxW);
             Widgets.Label(new Rect(contentX, topY, textMaxW, h), ErrorText);
             GUI.color = old;
         }
         else
         {
-            float h = Text.CalcHeight(ValidText, textMaxW);
+            var h = Text.CalcHeight(ValidText, textMaxW);
             Widgets.Label(new Rect(contentX, topY, textMaxW, h), ValidText);
         }
 
-        Utils.FilterDrawer.DrawMinusBottomRight(inner, categoryDefNames.Count > 0, () =>
+        Utils.FilterDrawer.DrawMinusBottomRight(inner, CategoryDefNames.Count > 0, () =>
         {
-            categoryDefNames.RemoveAt(categoryDefNames.Count - 1);
+            CategoryDefNames.RemoveAt(CategoryDefNames.Count - 1);
             _cachedCategoryDefs = null;
             dialog.MarkDirty();
         });
         Utils.FilterDrawer.DrawPlusBottomRight(inner, () =>
         {
-            var existing = new HashSet<string>(categoryDefNames);
+            var existing = new HashSet<string>(CategoryDefNames);
             var items = DefDatabase<ThingCategoryDef>.AllDefsListForReading
                 .Where(c => c.DescendantThingDefs.Any() && c != ThingCategoryDefOf.Root && !existing.Contains(c.defName))
                 .OrderBy(c => c.LabelCap.ToString())
-                .Select(c => ((string) c.LabelCap, (System.Action)(() =>
+                .Select(c => ((string) c.LabelCap, (Action)(() =>
                 {
-                    categoryDefNames.Add(c.defName);
+                    CategoryDefNames.Add(c.defName);
                     _cachedCategoryDefs = null;
                     dialog.MarkDirty();
                 }))).ToList();

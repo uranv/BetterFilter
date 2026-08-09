@@ -5,7 +5,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>disable</Nullable>
         <AssemblyName>BetterFilter</AssemblyName>
-        <AssemblyVersion>1.0.2</AssemblyVersion>
+        <AssemblyVersion>1.0.3</AssemblyVersion>
         <RootNamespace>BetterFilter</RootNamespace>
         <LangVersion>10</LangVersion>
         <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
@@ -52,7 +52,6 @@
     <ItemGroup>
         <Folder Include="Contents\Comps\" />
         <Folder Include="Contents\Patches\" />
-        <Folder Include="Contents\Utils\" />
     </ItemGroup>
 
     <Target Name="GenerateBuildDate" BeforeTargets="BeforeCompile">

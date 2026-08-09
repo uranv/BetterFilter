@@ -48,6 +48,7 @@
   <!-- ── 数值过滤器 ── -->
   <UR.BetterFilter.StackLimit>堆叠上限</UR.BetterFilter.StackLimit>
   <UR.BetterFilter.MassKg>重量 (kg)</UR.BetterFilter.MassKg>
+  <UR.BetterFilter.MarketValue>市场价值</UR.BetterFilter.MarketValue>
   <UR.BetterFilter.MaxValue>最大值：</UR.BetterFilter.MaxValue>
   <UR.BetterFilter.MinValue>最小值：</UR.BetterFilter.MinValue>
   <UR.BetterFilter.SelectPropertyTooltip>选择数值属性</UR.BetterFilter.SelectPropertyTooltip>
@@ -104,9 +105,9 @@
   <UR.BetterFilter.CmdBadCats>未知 ThingCategoryDef：{0}。使用 -u 跳过无效名称。</UR.BetterFilter.CmdBadCats>
   <UR.BetterFilter.CmdDupL>-l 指定了多次。</UR.BetterFilter.CmdDupL>
   <UR.BetterFilter.CmdDupV>-v 指定了多次。</UR.BetterFilter.CmdDupV>
-  <UR.BetterFilter.CmdValueNoProp>-d 后缺少属性名（StackLimit 或 Mass）。</UR.BetterFilter.CmdValueNoProp>
+  <UR.BetterFilter.CmdValueNoProp>-d 后缺少属性名（StackLimit、Mass 或 MarketValue）。</UR.BetterFilter.CmdValueNoProp>
   <UR.BetterFilter.CmdValueNoV>缺少 -v 及两个数值（最小值 最大值）。</UR.BetterFilter.CmdValueNoV>
-  <UR.BetterFilter.CmdValueBadProp>未知属性：{0}。可用：StackLimit, Mass 或 '路径.到.int'。</UR.BetterFilter.CmdValueBadProp>
+  <UR.BetterFilter.CmdValueBadProp>未知属性：{0}。可用：StackLimit, Mass, MarketValue 或 '路径.到.int'。</UR.BetterFilter.CmdValueBadProp>
   <UR.BetterFilter.CmdValueMultiD>-d 仅接受一个属性名称。</UR.BetterFilter.CmdValueMultiD>
   <UR.BetterFilter.CmdBadEnumVals>未知枚举值：{0}。使用 -u 跳过无效值。</UR.BetterFilter.CmdBadEnumVals>
 

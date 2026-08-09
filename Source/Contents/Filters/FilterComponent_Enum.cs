@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using RimWorld;
 using UnityEngine;
 using Verse;
@@ -16,15 +19,15 @@ public enum EnumPropertyType
 
 public class FilterComponent_Enum : FilterComponent
 {
-    public EnumPropertyType? propertyType;
-    public List<string> selectedValues = new();
+    public EnumPropertyType? PropertyType;
+    public List<string> SelectedValues = new();
     /// <summary>Invalid property name from CLI -u mode. When set, filter always allows.</summary>
-    public string errorPropertyName;
+    public string ErrorPropertyName;
     /// <summary>Invalid enum values from CLI -u mode, displayed in gray.</summary>
-    public List<string> errorValues = new();
-    public bool isWhitelist = true;
-    public bool isLoose = false;
-    public bool pendingDelete;
+    public List<string> ErrorValues = new();
+    public bool IsWhitelist = true;
+    public bool IsLoose;
+    public bool PendingDelete;
 
     private static string PropertyLabel(EnumPropertyType p) => p switch
     {
@@ -49,18 +52,18 @@ public class FilterComponent_Enum : FilterComponent
         _ => new List<string>()
     };
 
-    private static readonly Dictionary<EnumPropertyType, List<string>> _allValuesCache = new();
+    private static readonly Dictionary<EnumPropertyType, List<string>> AllValuesCache = new();
     private static int _allValuesCacheVersion = -1;
 
     internal static List<string> GetAllValues(EnumPropertyType p)
     {
-        int currentVersion = DefDatabase<ThingDef>.AllDefsListForReading.Count;
+        var currentVersion = DefDatabase<ThingDef>.AllDefsListForReading.Count;
         if (_allValuesCacheVersion != currentVersion)
         {
-            _allValuesCache.Clear();
+            AllValuesCache.Clear();
             _allValuesCacheVersion = currentVersion;
         }
-        if (_allValuesCache.TryGetValue(p, out var cached))
+        if (AllValuesCache.TryGetValue(p, out var cached))
             return cached;
 
         List<string> result;
@@ -99,7 +102,7 @@ public class FilterComponent_Enum : FilterComponent
                 result = new List<string>();
                 break;
         }
-        _allValuesCache[p] = result;
+        AllValuesCache[p] = result;
         return result;
     }
 
@@ -125,10 +128,10 @@ public class FilterComponent_Enum : FilterComponent
     {
         get
         {
-            if (propertyType != null)
-                return PropertyLabel(propertyType.Value) + ":";
-            if (errorPropertyName != null)
-                return "*" + errorPropertyName + ":";
+            if (PropertyType != null)
+                return PropertyLabel(PropertyType.Value) + ":";
+            if (ErrorPropertyName != null)
+                return "*" + ErrorPropertyName + ":";
             return "UR.BetterFilter.SelectEnumProperty".Translate();
         }
     }
@@ -137,25 +140,25 @@ public class FilterComponent_Enum : FilterComponent
     {
         get
         {
-            if (propertyType == null || selectedValues.Count == 0) return "";
-            var pt = propertyType.Value;
-            return string.Join(", ", selectedValues.Select(v => ValueLabel(pt, v)));
+            if (PropertyType == null || SelectedValues.Count == 0) return "";
+            var pt = PropertyType.Value;
+            return string.Join(", ", SelectedValues.Select(v => ValueLabel(pt, v)));
         }
     }
 
     private string ErrorValuesText =>
-        errorValues.Count == 0 ? "" : string.Join(", ", errorValues.Select(v => "*" + v));
+        ErrorValues.Count == 0 ? "" : string.Join(", ", ErrorValues.Select(v => "*" + v));
 
     private string FullDisplayText
     {
         get
         {
             var parts = new List<string>();
-            string prop = PropDisplayText;
+            var prop = PropDisplayText;
             if (!string.IsNullOrEmpty(prop)) parts.Add(prop);
-            string vals = ValidValuesText;
+            var vals = ValidValuesText;
             if (!string.IsNullOrEmpty(vals)) parts.Add(vals);
-            string errs = ErrorValuesText;
+            var errs = ErrorValuesText;
             if (!string.IsNullOrEmpty(errs)) parts.Add(errs);
             return string.Join(" ", parts);
         }
@@ -166,19 +169,19 @@ public class FilterComponent_Enum : FilterComponent
 
     public override bool AllowsDef(ThingDef def)
     {
-        if (propertyType == null)
+        if (PropertyType == null)
             return true;
 
-        var pt = propertyType.Value;
+        var pt = PropertyType.Value;
         if (!HasProperty(def, pt))
-            return isLoose;
+            return IsLoose;
 
-        if (selectedValues.Count == 0)
+        if (SelectedValues.Count == 0)
             return true;
 
         var defVals = GetDefValues(def, pt);
-        bool matchesAny = defVals.Any(v => selectedValues.Contains(v));
-        return isWhitelist ? matchesAny : !matchesAny;
+        var matchesAny = defVals.Any(v => SelectedValues.Contains(v));
+        return IsWhitelist ? matchesAny : !matchesAny;
     }
 
     public override string ToCommandLine()
@@ -186,23 +189,23 @@ public class FilterComponent_Enum : FilterComponent
         var parts = new List<string> { "enum", "-d" };
 
         // Property name
-        if (errorPropertyName != null)
-            parts.Add(errorPropertyName);
-        else if (propertyType != null)
-            parts.Add(propertyType.Value.ToString());
+        if (ErrorPropertyName != null)
+            parts.Add(ErrorPropertyName);
+        else if (PropertyType != null)
+            parts.Add(PropertyType.Value.ToString());
         else
             return ""; // No property selected, can't serialize — skip
 
         // Values
-        if (selectedValues.Count > 0 || errorValues.Count > 0)
+        if (SelectedValues.Count > 0 || ErrorValues.Count > 0)
         {
             parts.Add("-v");
-            parts.AddRange(selectedValues);
-            parts.AddRange(errorValues);
+            parts.AddRange(SelectedValues);
+            parts.AddRange(ErrorValues);
         }
 
-        if (!isWhitelist) parts.Add("-b");
-        if (isLoose) parts.Add("-l");
+        if (!IsWhitelist) parts.Add("-b");
+        if (IsLoose) parts.Add("-l");
         parts.Add("-u");
         return string.Join(" ", parts);
     }
@@ -210,73 +213,73 @@ public class FilterComponent_Enum : FilterComponent
     public override void Draw(Rect rect, Dialog.Dialog_AdvancedFilters dialog, int index)
     {
         Widgets.DrawBoxSolid(rect, new Color(0.18f, 0.18f, 0.2f));
-        Rect inner = rect.ContractedBy(4f);
+        var inner = rect.ContractedBy(4f);
 
-        float contentX = Utils.FilterDrawer.DrawBadge(inner, isWhitelist, isLoose,
-            () => { isWhitelist = !isWhitelist; dialog.MarkDirty(); },
+        var contentX = Utils.FilterDrawer.DrawBadge(inner, IsWhitelist, IsLoose,
+            () => { IsWhitelist = !IsWhitelist; dialog.MarkDirty(); },
             "UR.BetterFilter.WhitelistNumericTooltip", "UR.BetterFilter.BlacklistNumericTooltip");
 
-        Utils.FilterDrawer.DrawOptionTopRight(inner, isLoose,
-            () => { isLoose = !isLoose; dialog.MarkDirty(); });
-        Utils.FilterDrawer.DrawDeleteTopRight(inner, ref pendingDelete);
+        Utils.FilterDrawer.DrawOptionTopRight(inner, IsLoose,
+            () => { IsLoose = !IsLoose; dialog.MarkDirty(); });
+        Utils.FilterDrawer.DrawDeleteTopRight(inner, ref PendingDelete);
 
         // Draw text with gray error rendering
-        float textMaxW = Utils.FilterDrawer.TextMaxWidth(inner, contentX);
-        float topY = inner.y + Utils.FilterDrawer.BadgeMargin;
-        Color oldColor = GUI.color;
+        var textMaxW = Utils.FilterDrawer.TextMaxWidth(inner, contentX);
+        var topY = inner.y + Utils.FilterDrawer.BadgeMargin;
+        var oldColor = GUI.color;
 
         // Build segments: normal text vs gray error text
-        bool hasErrorProp = errorPropertyName != null && propertyType == null;
-        bool hasErrVals = errorValues.Count > 0;
-        bool hasValVals = propertyType != null && selectedValues.Count > 0;
+        var hasErrorProp = ErrorPropertyName != null && PropertyType == null;
+        var hasErrVals = ErrorValues.Count > 0;
+        var hasValVals = PropertyType != null && SelectedValues.Count > 0;
 
         if (hasErrorProp)
         {
             // Property name is invalid → draw all in gray
             GUI.color = Color.gray;
-            string full = PropDisplayText;
+            var full = PropDisplayText;
             if (hasValVals) full += " " + ValidValuesText;
             if (hasErrVals) full += " " + ErrorValuesText;
-            float h = Text.CalcHeight(full, textMaxW);
+            var h = Text.CalcHeight(full, textMaxW);
             Widgets.Label(new Rect(contentX, topY, textMaxW, h), full);
             GUI.color = oldColor;
         }
         else if (hasValVals && hasErrVals)
         {
             // Both valid and error values
-            string prop = PropDisplayText;
-            float propW = Text.CalcSize(prop).x;
+            var prop = PropDisplayText;
+            var propW = Text.CalcSize(prop).x;
             Widgets.Label(new Rect(contentX, topY, textMaxW, 20f), prop);
-            float afterX = contentX + propW + 4f;
+            var afterX = contentX + propW + 4f;
 
-            string valText = ValidValuesText;
-            float valW = Text.CalcSize(valText).x;
-            float lineH = Text.CalcHeight(valText, textMaxW - (afterX - contentX));
+            var valText = ValidValuesText;
+            var valW = Text.CalcSize(valText).x;
+            var lineH = Text.CalcHeight(valText, textMaxW - (afterX - contentX));
             Widgets.Label(new Rect(afterX, topY, textMaxW - (afterX - contentX), lineH), valText);
             afterX += valW + 4f;
 
             GUI.color = Color.gray;
-            string errText = ErrorValuesText;
-            float errW = textMaxW - (afterX - contentX);
+            var errText = ErrorValuesText;
+            var errW = textMaxW - (afterX - contentX);
             if (errW < 40f) { afterX = contentX; topY += lineH; errW = textMaxW; }
             Widgets.Label(new Rect(afterX, topY, errW, lineH), errText);
             GUI.color = oldColor;
         }
-        else if (propertyType == null && errorPropertyName == null)
+        else if (PropertyType == null && ErrorPropertyName == null)
         {
             // No property selected yet
-            float h = Text.CalcHeight(FullDisplayText, textMaxW);
+            var h = Text.CalcHeight(FullDisplayText, textMaxW);
             Widgets.Label(new Rect(contentX, topY, textMaxW, h), FullDisplayText);
         }
         else if (hasErrVals)
         {
             // Only error values (no valid values)
-            string prop = PropDisplayText;
-            float lineH = Text.CalcHeight(prop, textMaxW);
+            var prop = PropDisplayText;
+            var lineH = Text.CalcHeight(prop, textMaxW);
             Widgets.Label(new Rect(contentX, topY, textMaxW, lineH), prop);
-            float afterX = contentX + Text.CalcSize(prop).x + 4f;
+            var afterX = contentX + Text.CalcSize(prop).x + 4f;
             GUI.color = Color.gray;
-            float errW = textMaxW - (afterX - contentX);
+            var errW = textMaxW - (afterX - contentX);
             if (errW < 40f) { afterX = contentX; errW = textMaxW; }
             Widgets.Label(new Rect(afterX, topY, errW, lineH), ErrorValuesText);
             GUI.color = oldColor;
@@ -284,32 +287,32 @@ public class FilterComponent_Enum : FilterComponent
         else
         {
             // Normal: valid property, valid values (or no values)
-            float h = Text.CalcHeight(FullDisplayText, textMaxW);
+            var h = Text.CalcHeight(FullDisplayText, textMaxW);
             Widgets.Label(new Rect(contentX, topY, textMaxW, h), FullDisplayText);
         }
 
-        Utils.FilterDrawer.DrawMinusBottomRight(inner, selectedValues.Count > 0,
-            () => { selectedValues.RemoveAt(selectedValues.Count - 1); dialog.MarkDirty(); });
+        Utils.FilterDrawer.DrawMinusBottomRight(inner, SelectedValues.Count > 0,
+            () => { SelectedValues.RemoveAt(SelectedValues.Count - 1); dialog.MarkDirty(); });
         Utils.FilterDrawer.DrawPlusBottomRight(inner, () =>
         {
-            if (propertyType == null && errorPropertyName == null)
+            if (PropertyType == null && ErrorPropertyName == null)
             {
-                var items = System.Enum.GetValues(typeof(EnumPropertyType))
+                var items = Enum.GetValues(typeof(EnumPropertyType))
                     .Cast<EnumPropertyType>()
-                    .Select(e => (PropertyLabel(e), (System.Action)(() =>
-                        { propertyType = e; dialog.MarkDirty(); })))
+                    .Select(e => (PropertyLabel(e), (Action)(() =>
+                        { PropertyType = e; dialog.MarkDirty(); })))
                     .ToList();
                 Find.WindowStack.Add(new Dialog.Dialog_SearchableSelect(
                     "UR.BetterFilter.EnumFilter".Translate(), items));
             }
-            else if (propertyType != null)
+            else if (PropertyType != null)
             {
-                var pt = propertyType.Value;
-                var existing = new HashSet<string>(selectedValues);
+                var pt = PropertyType.Value;
+                var existing = new HashSet<string>(SelectedValues);
                 var items = GetAllValues(pt)
                     .Where(v => !existing.Contains(v))
-                    .Select(v => (ValueLabel(pt, v), (System.Action)(() =>
-                        { selectedValues.Add(v); dialog.MarkDirty(); })))
+                    .Select(v => (ValueLabel(pt, v), (Action)(() =>
+                        { SelectedValues.Add(v); dialog.MarkDirty(); })))
                     .ToList();
                 Find.WindowStack.Add(new Dialog.Dialog_SearchableSelect(
                     PropertyLabel(pt), items));

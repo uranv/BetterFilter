@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -19,7 +20,7 @@ public class Dialog_SaveFilter : Window
     private readonly List<FilterComponent> _components;
 
     private string _newFilename = "";
-    private string _renamingFile = null;
+    private string _renamingFile;
     private string _renameBuffer = "";
     private Vector2 _listScroll = Vector2.zero;
 
@@ -62,21 +63,21 @@ public class Dialog_SaveFilter : Window
         var inner = inRect.ContractedBy(12f);
 
         // ── Bottom input row (centered, tight to bottom) ──
-        float bottomMargin = 12f;
-        float rowH = 28f;
-        float inputW = 300f;
-        float btnW = 60f;
-        float totalW = inputW + 6f + btnW;
-        float inputY = inRect.yMax - bottomMargin - rowH;
-        float startX = inRect.center.x - totalW / 2f;
+        var bottomMargin = 12f;
+        var rowH = 28f;
+        var inputW = 300f;
+        var btnW = 60f;
+        var totalW = inputW + 6f + btnW;
+        var inputY = inRect.yMax - bottomMargin - rowH;
+        var startX = inRect.center.x - totalW / 2f;
 
-        Rect inputRect = new Rect(startX, inputY, inputW, rowH);
+        var inputRect = new Rect(startX, inputY, inputW, rowH);
         _newFilename = Widgets.TextField(inputRect, _newFilename);
 
-        Rect saveBtn = new Rect(inputRect.xMax + 6f, inputY, btnW, rowH);
+        var saveBtn = new Rect(inputRect.xMax + 6f, inputY, btnW, rowH);
         if (Widgets.ButtonText(saveBtn, "UR.BetterFilter.Save".Translate()))
         {
-            string name = _newFilename.Trim();
+            var name = _newFilename.Trim();
             if (string.IsNullOrEmpty(name))
             {
                 Messages.Message("UR.BetterFilter.SaveEmptyName".Translate(),
@@ -96,27 +97,27 @@ public class Dialog_SaveFilter : Window
 
         // ── Existing files list (fills remaining space above input) ──
         var files = SavedFiles;
-        float scrollAreaH = inputY - inRect.y - 6f;
-        float listH = Mathf.Max(scrollAreaH, files.Count * 32f);
-        Rect listView = new Rect(0f, 0f, inner.width - 16f, listH);
-        Rect scrollRect = new Rect(inner.x, inner.y, inner.width, scrollAreaH);
+        var scrollAreaH = inputY - inRect.y - 6f;
+        var listH = Mathf.Max(scrollAreaH, files.Count * 32f);
+        var listView = new Rect(0f, 0f, inner.width - 16f, listH);
+        var scrollRect = new Rect(inner.x, inner.y, inner.width, scrollAreaH);
         Widgets.BeginScrollView(scrollRect, ref _listScroll, listView);
 
-        float ry = 0f;
-        foreach (string name in files)
+        var ry = 0f;
+        foreach (var name in files)
         {
-            float btnAreaW = 190f;
-            Rect rowRect = new Rect(0f, ry, listView.width, 28f);
+            var btnAreaW = 190f;
+            var rowRect = new Rect(0f, ry, listView.width, 28f);
 
             if (_renamingFile == name)
             {
-                Rect renameRect = new Rect(rowRect.x, rowRect.y, rowRect.width - btnAreaW, 24f);
+                var renameRect = new Rect(rowRect.x, rowRect.y, rowRect.width - btnAreaW, 24f);
                 _renameBuffer = Widgets.TextField(renameRect, _renameBuffer);
 
-                Rect okRect = new Rect(renameRect.xMax + 6f, rowRect.y, 50f, 24f);
+                var okRect = new Rect(renameRect.xMax + 6f, rowRect.y, 50f, 24f);
                 if (Widgets.ButtonText(okRect, "OK"))
                 {
-                    string newName = _renameBuffer.Trim();
+                    var newName = _renameBuffer.Trim();
                     if (!string.IsNullOrEmpty(newName) && newName != name)
                     {
                         if (SavedFiles.Contains(newName))
@@ -131,14 +132,14 @@ public class Dialog_SaveFilter : Window
                     }
                 }
 
-                Rect cancelRect = new Rect(okRect.xMax + 6f, rowRect.y, 80f, 24f);
+                var cancelRect = new Rect(okRect.xMax + 6f, rowRect.y, 80f, 24f);
                 if (Widgets.ButtonText(cancelRect, "CancelButton".Translate()))
                     _renamingFile = null;
             }
             else
             {
-                float btnX = rowRect.xMax - 24f;
-                Rect delBtn = new Rect(btnX, rowRect.y + 2f, 20f, 20f);
+                var btnX = rowRect.xMax - 24f;
+                var delBtn = new Rect(btnX, rowRect.y + 2f, 20f, 20f);
                 if (Widgets.ButtonImage(delBtn, TexButton.Delete))
                 {
                     DoDelete(name);
@@ -146,7 +147,7 @@ public class Dialog_SaveFilter : Window
                 }
                 btnX -= 86f;
 
-                Rect overwriteBtn = new Rect(btnX, rowRect.y, 80f, 24f);
+                var overwriteBtn = new Rect(btnX, rowRect.y, 80f, 24f);
                 if (Widgets.ButtonText(overwriteBtn, "UR.BetterFilter.Overwrite".Translate()))
                 {
                     DoSave(name);
@@ -154,14 +155,14 @@ public class Dialog_SaveFilter : Window
                 }
                 btnX -= 76f;
 
-                Rect renameBtn = new Rect(btnX, rowRect.y, 70f, 24f);
+                var renameBtn = new Rect(btnX, rowRect.y, 70f, 24f);
                 if (Widgets.ButtonText(renameBtn, "UR.BetterFilter.Rename".Translate()))
                 {
                     _renamingFile = name;
                     _renameBuffer = name;
                 }
 
-                Rect labelRect = new Rect(rowRect.x, rowRect.y, btnX - rowRect.x - 6f, 24f);
+                var labelRect = new Rect(rowRect.x, rowRect.y, btnX - rowRect.x - 6f, 24f);
                 Widgets.Label(labelRect, name);
             }
 
@@ -170,7 +171,7 @@ public class Dialog_SaveFilter : Window
 
         if (files.Count == 0)
         {
-            Rect hintRect = new Rect(0f, ry, listView.width, 24f);
+            var hintRect = new Rect(0f, ry, listView.width, 24f);
             Widgets.Label(hintRect, "UR.BetterFilter.NoSavedFilters".Translate());
         }
 
@@ -182,7 +183,7 @@ public class Dialog_SaveFilter : Window
         try
         {
             Directory.CreateDirectory(SaveDir);
-            string path = Path.Combine(SaveDir, filename + ".txt");
+            var path = Path.Combine(SaveDir, filename + ".txt");
 
             // Non-item components: one line per component
             var lines = _components
@@ -194,16 +195,16 @@ public class Dialog_SaveFilter : Window
             // Item components: group by isWhitelist for compact output
             var itemGroups = _components
                 .OfType<FilterComponent_Item>()
-                .GroupBy(it => it.isWhitelist);
+                .GroupBy(it => it.IsWhitelist);
             foreach (var group in itemGroups)
             {
                 var parts = new List<string> { "item", "-d" };
                 foreach (var it in group)
                 {
-                    if (it.selectedDef != null)
-                        parts.Add(it.selectedDef.defName);
-                    else if (it.errorDefName != null)
-                        parts.Add(it.errorDefName);
+                    if (it.SelectedDef != null)
+                        parts.Add(it.SelectedDef.defName);
+                    else if (it.ErrorDefName != null)
+                        parts.Add(it.ErrorDefName);
                 }
                 if (parts.Count <= 2) continue; // no defs
                 if (!group.Key) parts.Add("-b");
@@ -213,7 +214,7 @@ public class Dialog_SaveFilter : Window
 
             File.WriteAllLines(path, lines);
         }
-        catch (System.Exception ex)
+        catch (Exception ex)
         {
             Log.Error("[BetterFilter] Failed to save filter set: " + ex.Message);
         }
@@ -223,11 +224,11 @@ public class Dialog_SaveFilter : Window
     {
         try
         {
-            string path = Path.Combine(SaveDir, filename + ".txt");
+            var path = Path.Combine(SaveDir, filename + ".txt");
             if (File.Exists(path))
                 File.Delete(path);
         }
-        catch (System.Exception ex)
+        catch (Exception ex)
         {
             Log.Error("[BetterFilter] Failed to delete filter set: " + ex.Message);
         }
@@ -237,15 +238,15 @@ public class Dialog_SaveFilter : Window
     {
         try
         {
-            string oldPath = Path.Combine(SaveDir, oldName + ".txt");
-            string newPath = Path.Combine(SaveDir, newName + ".txt");
+            var oldPath = Path.Combine(SaveDir, oldName + ".txt");
+            var newPath = Path.Combine(SaveDir, newName + ".txt");
             if (File.Exists(oldPath) && !File.Exists(newPath))
             {
                 File.Move(oldPath, newPath);
                 _renamingFile = null;
             }
         }
-        catch (System.Exception ex)
+        catch (Exception ex)
         {
             Log.Error("[BetterFilter] Failed to rename filter set: " + ex.Message);
         }

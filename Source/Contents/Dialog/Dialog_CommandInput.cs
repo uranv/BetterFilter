@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using BetterFilter.Contents.Filters;
 using RimWorld;
 using UnityEngine;
@@ -39,11 +42,11 @@ public class Dialog_CommandInput : Window
         _buffer = Widgets.TextField(textRect, _buffer);
 
         inner.yMin += 40f;
-        float btnW = (inner.width - 6f) / 2f;
+        var btnW = (inner.width - 6f) / 2f;
         if (Widgets.ButtonText(new Rect(inner.x, inner.y, btnW, 30f), "OK"))
         {
             if (TryParseAndAdd(_buffer.Trim()))
-                { _parent.MarkDirty(); Close(); }
+            { _parent.MarkDirty(); Close(); }
         }
         if (Widgets.ButtonText(new Rect(inner.x + btnW + 6f, inner.y, btnW, 30f),
                 "CancelButton".Translate()))
@@ -55,7 +58,7 @@ public class Dialog_CommandInput : Window
             && GUI.GetNameOfFocusedControl().Contains("TextField"))
         {
             if (TryParseAndAdd(_buffer.Trim()))
-                { _parent.MarkDirty(); Close(); }
+            { _parent.MarkDirty(); Close(); }
             Event.current.Use();
         }
     }
@@ -65,7 +68,7 @@ public class Dialog_CommandInput : Window
     private bool TryParseAndAdd(string cmd)
     {
         if (string.IsNullOrEmpty(cmd)) return false;
-        return TryParseMulti(cmd, _parent.components);
+        return TryParseMulti(cmd, _parent.Components);
     }
 
     /// <summary>
@@ -90,7 +93,7 @@ public class Dialog_CommandInput : Window
         var parts = cmd.Split(' ').Where(s => s.Length > 0).ToList();
         if (parts.Count == 0) return false;
 
-        string type = parts[0].ToLowerInvariant();
+        var type = parts[0].ToLowerInvariant();
 
         switch (type)
         {
@@ -112,10 +115,10 @@ public class Dialog_CommandInput : Window
         // State
         var defNames = new List<string>();
         bool? isBlacklist = null;
-        bool isUnsafe = false;
-        int i = 1; // skip "filter"
+        var isUnsafe = false;
+        var i = 1; // skip "filter"
 
-        bool hasD = false;
+        var hasD = false;
 
         while (i < parts.Count)
         {
@@ -208,10 +211,10 @@ public class Dialog_CommandInput : Window
 
         var comp = new FilterComponent_Worker
         {
-            isWhitelist = !(isBlacklist ?? false)
+            IsWhitelist = !(isBlacklist ?? false)
         };
-        comp.selectedDefs.AddRange(resolved);
-        comp.errorDefNames.AddRange(errors);
+        comp.SelectedDefs.AddRange(resolved);
+        comp.ErrorDefNames.AddRange(errors);
         target.Add(comp);
         return true;
     }
@@ -220,9 +223,9 @@ public class Dialog_CommandInput : Window
     {
         var packageIds = new List<string>();
         bool? isBlacklist = null;
-        bool isUnsafe = false;
-        int i = 1;
-        bool hasD = false;
+        var isUnsafe = false;
+        var i = 1;
+        var hasD = false;
 
         while (i < parts.Count)
         {
@@ -275,9 +278,9 @@ public class Dialog_CommandInput : Window
             return false;
         }
 
-        var comp = new FilterComponent_Mod { isWhitelist = !(isBlacklist ?? false) };
-        comp.packageIds.AddRange(valid);
-        comp.errorPackageIds.AddRange(errors);
+        var comp = new FilterComponent_Mod { IsWhitelist = !(isBlacklist ?? false) };
+        comp.PackageIds.AddRange(valid);
+        comp.ErrorPackageIds.AddRange(errors);
         target.Add(comp);
         return true;
     }
@@ -286,9 +289,9 @@ public class Dialog_CommandInput : Window
     {
         var catNames = new List<string>();
         bool? isBlacklist = null;
-        bool isUnsafe = false;
-        int i = 1;
-        bool hasD = false;
+        var isUnsafe = false;
+        var i = 1;
+        var hasD = false;
 
         while (i < parts.Count)
         {
@@ -335,9 +338,9 @@ public class Dialog_CommandInput : Window
         if (valid.Count == 0 && errors.Count == 0)
             return false;
 
-        var comp = new FilterComponent_Category { isWhitelist = !(isBlacklist ?? false) };
-        comp.categoryDefNames.AddRange(valid);
-        comp.errorCategoryNames.AddRange(errors);
+        var comp = new FilterComponent_Category { IsWhitelist = !(isBlacklist ?? false) };
+        comp.CategoryDefNames.AddRange(valid);
+        comp.ErrorCategoryNames.AddRange(errors);
         target.Add(comp);
         return true;
     }
@@ -347,10 +350,10 @@ public class Dialog_CommandInput : Window
         string propName = null;
         bool? isBlacklist = null;
         bool? isLoose = null;
-        bool isUnsafe = false;
+        var isUnsafe = false;
         float? vMin = null;
         float? vMax = null;
-        int i = 1;
+        var i = 1;
         bool hasD = false, hasV = false;
 
         while (i < parts.Count)
@@ -387,13 +390,13 @@ public class Dialog_CommandInput : Window
                     hasV = true; i++;
                     // First value: n=nolimit, n<num>=negative, otherwise positive float
                     if (i < parts.Count && !parts[i].StartsWith("-")
-                                        && TryParseValueArg(parts[i], out float? p1))
+                                        && TryParseValueArg(parts[i], out var p1))
                     {
                         vMin = p1; i++;
                     }
                     // Second value
                     if (i < parts.Count && !parts[i].StartsWith("-")
-                                        && TryParseValueArg(parts[i], out float? p2))
+                                        && TryParseValueArg(parts[i], out var p2))
                     {
                         vMax = p2; i++;
                     }
@@ -426,7 +429,7 @@ public class Dialog_CommandInput : Window
             propName = propName.Substring(4);
 
         // Map property name: known aliases or single-quoted custom path
-        NumericPropertyType propType = NumericPropertyType.StackLimit;
+        var propType = NumericPropertyType.StackLimit;
         string customPath = null;
         string errPropName = null;
 
@@ -440,13 +443,18 @@ public class Dialog_CommandInput : Window
         {
             propType = NumericPropertyType.Mass;
         }
+        else if (string.Equals(propName, "MarketValue", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(propName, "market", StringComparison.OrdinalIgnoreCase))
+        {
+            propType = NumericPropertyType.MarketValue;
+        }
         else if (propName.StartsWith("'") && propName.EndsWith("'"))
         {
             // Custom reflection path, e.g. 'recipeMaker?.displayPriority'
             customPath = propName.Substring(1, propName.Length - 2);
             // Validate it resolves to int/int? on at least one ThingDef
-            bool valid = false;
-            foreach (ThingDef td in DefDatabase<ThingDef>.AllDefsListForReading)
+            var valid = false;
+            foreach (var td in DefDatabase<ThingDef>.AllDefsListForReading)
             {
                 var iv = FilterComponent_Numeric.ResolveIntPath(td, customPath);
                 if (iv.HasValue) { valid = true; break; }
@@ -479,15 +487,15 @@ public class Dialog_CommandInput : Window
 
         var comp = new FilterComponent_Numeric
         {
-            propertyType = propType,
-            customPropPath = customPath,
-            errorPropName = errPropName,
-            isWhitelist = !(isBlacklist ?? false),
-            isLoose = isLoose ?? false,
-            min = vMin ?? 0f,
-            max = vMax ?? 0f,
-            minBuffer = vMin?.ToString() ?? "",
-            maxBuffer = vMax?.ToString() ?? ""
+            PropertyType = propType,
+            CustomPropPath = customPath,
+            ErrorPropName = errPropName,
+            IsWhitelist = !(isBlacklist ?? false),
+            IsLoose = isLoose ?? false,
+            Min = vMin ?? 0f,
+            Max = vMax ?? 0f,
+            MinBuffer = vMin?.ToString() ?? "",
+            MaxBuffer = vMax?.ToString() ?? ""
         };
         target.Add(comp);
         return true;
@@ -498,9 +506,9 @@ public class Dialog_CommandInput : Window
         string propName = null;
         bool? isBlacklist = null;
         bool? isLoose = null;
-        bool isUnsafe = false;
+        var isUnsafe = false;
         var rawValues = new List<string>();
-        int i = 1;
+        var i = 1;
         bool hasD = false, hasV = false;
 
         while (i < parts.Count)
@@ -556,12 +564,12 @@ public class Dialog_CommandInput : Window
         }
 
         // Resolve property name
-        EnumPropertyType? propType = ResolveEnumProperty(propName);
+        var propType = ResolveEnumProperty(propName);
 
         var comp = new FilterComponent_Enum
         {
-            isWhitelist = !(isBlacklist ?? false),
-            isLoose = isLoose ?? false
+            IsWhitelist = !(isBlacklist ?? false),
+            IsLoose = isLoose ?? false
         };
 
         if (propType == null)
@@ -573,21 +581,21 @@ public class Dialog_CommandInput : Window
                 return false;
             }
             // -u mode: property invalid → filter always allows, show error name
-            comp.errorPropertyName = propName;
+            comp.ErrorPropertyName = propName;
             // Invalid property → all values are meaningless, treat as errors
             if (rawValues.Count > 0)
-                comp.errorValues.AddRange(rawValues);
+                comp.ErrorValues.AddRange(rawValues);
         }
         else
         {
-            comp.propertyType = propType;
+            comp.PropertyType = propType;
             var allValues = FilterComponent_Enum.GetAllValues(propType.Value);
             var allSet = new HashSet<string>(allValues);
             var badVals = new List<string>();
             foreach (var v in rawValues)
             {
                 if (allSet.Contains(v))
-                    comp.selectedValues.Add(v);
+                    comp.SelectedValues.Add(v);
                 else
                     badVals.Add(v);
             }
@@ -598,7 +606,7 @@ public class Dialog_CommandInput : Window
                 return false;
             }
             if (badVals.Count > 0)
-                comp.errorValues.AddRange(badVals);
+                comp.ErrorValues.AddRange(badVals);
         }
 
         target.Add(comp);
@@ -609,9 +617,9 @@ public class Dialog_CommandInput : Window
     {
         var defNames = new List<string>();
         bool? isBlacklist = null;
-        bool isUnsafe = false;
-        int i = 1;
-        bool hasD = false;
+        var isUnsafe = false;
+        var i = 1;
+        var hasD = false;
 
         while (i < parts.Count)
         {
@@ -659,11 +667,11 @@ public class Dialog_CommandInput : Window
         if (resolved.Count == 0 && errors.Count == 0)
             return false;
 
-        bool whitelist = !(isBlacklist ?? false);
+        var whitelist = !(isBlacklist ?? false);
         foreach (var def in resolved)
-            target.Add(new FilterComponent_Item { selectedDef = def, isWhitelist = whitelist });
+            target.Add(new FilterComponent_Item { SelectedDef = def, IsWhitelist = whitelist });
         foreach (var err in errors)
-            target.Add(new FilterComponent_Item { errorDefName = err, isWhitelist = whitelist });
+            target.Add(new FilterComponent_Item { ErrorDefName = err, IsWhitelist = whitelist });
         return true;
     }
 
@@ -709,12 +717,12 @@ public class Dialog_CommandInput : Window
             value = null;
             return true;
         }
-        if (s.StartsWith("n") && s.Length > 1 && float.TryParse(s.Substring(1), out float neg))
+        if (s.StartsWith("n") && s.Length > 1 && float.TryParse(s.Substring(1), out var neg))
         {
             value = -neg;
             return true;
         }
-        if (float.TryParse(s, out float pos))
+        if (float.TryParse(s, out var pos))
         {
             value = pos;
             return true;

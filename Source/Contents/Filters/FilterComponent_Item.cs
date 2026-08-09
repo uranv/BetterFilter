@@ -1,4 +1,4 @@
-using BetterFilter.Contents.Dialog;
+using System.Collections.Generic;
 using UnityEngine;
 using Verse;
 
@@ -12,11 +12,11 @@ namespace BetterFilter.Contents.Filters;
 /// </summary>
 public class FilterComponent_Item : FilterComponent
 {
-    public ThingDef selectedDef;
+    public ThingDef SelectedDef;
     /// <summary>DefName that failed to resolve (set by CLI parser in -u mode).</summary>
-    public string errorDefName;
-    public bool isWhitelist = true;
-    public bool pendingDelete;
+    public string ErrorDefName;
+    public bool IsWhitelist = true;
+    public bool PendingDelete;
 
     public override float BlockHeight => 0f; // rendered in override panel
 
@@ -24,12 +24,12 @@ public class FilterComponent_Item : FilterComponent
 
     public override string ToCommandLine()
     {
-        var parts = new System.Collections.Generic.List<string> { "item", "-d" };
-        if (selectedDef != null)
-            parts.Add(selectedDef.defName);
-        else if (errorDefName != null)
-            parts.Add(errorDefName);
-        if (!isWhitelist) parts.Add("-b");
+        var parts = new List<string> { "item", "-d" };
+        if (SelectedDef != null)
+            parts.Add(SelectedDef.defName);
+        else if (ErrorDefName != null)
+            parts.Add(ErrorDefName);
+        if (!IsWhitelist) parts.Add("-b");
         parts.Add("-u");
         return string.Join(" ", parts);
     }

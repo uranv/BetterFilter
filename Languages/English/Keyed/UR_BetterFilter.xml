@@ -48,6 +48,7 @@
   <!-- ── Numeric filter ── -->
   <UR.BetterFilter.StackLimit>Stack Limit</UR.BetterFilter.StackLimit>
   <UR.BetterFilter.MassKg>Mass (kg)</UR.BetterFilter.MassKg>
+  <UR.BetterFilter.MarketValue>Market Value</UR.BetterFilter.MarketValue>
   <UR.BetterFilter.MaxValue>Max:</UR.BetterFilter.MaxValue>
   <UR.BetterFilter.MinValue>Min:</UR.BetterFilter.MinValue>
   <UR.BetterFilter.SelectPropertyTooltip>Select numeric property</UR.BetterFilter.SelectPropertyTooltip>
@@ -104,9 +105,9 @@
   <UR.BetterFilter.CmdBadCats>Unknown ThingCategoryDef(s): {0}. Use -u to skip invalid names.</UR.BetterFilter.CmdBadCats>
   <UR.BetterFilter.CmdDupL>-l specified more than once.</UR.BetterFilter.CmdDupL>
   <UR.BetterFilter.CmdDupV>-v specified more than once.</UR.BetterFilter.CmdDupV>
-  <UR.BetterFilter.CmdValueNoProp>Missing property name after -d (StackLimit or Mass).</UR.BetterFilter.CmdValueNoProp>
+  <UR.BetterFilter.CmdValueNoProp>Missing property name after -d (StackLimit, Mass, or MarketValue).</UR.BetterFilter.CmdValueNoProp>
   <UR.BetterFilter.CmdValueNoV>Missing -v with two numeric values (min max).</UR.BetterFilter.CmdValueNoV>
-  <UR.BetterFilter.CmdValueBadProp>Unknown property: {0}. Valid: StackLimit, Mass, or 'path.to.int'.</UR.BetterFilter.CmdValueBadProp>
+  <UR.BetterFilter.CmdValueBadProp>Unknown property: {0}. Valid: StackLimit, Mass, MarketValue, or 'path.to.int'.</UR.BetterFilter.CmdValueBadProp>
   <UR.BetterFilter.CmdValueMultiD>-d accepts exactly one property name.</UR.BetterFilter.CmdValueMultiD>
   <UR.BetterFilter.CmdBadEnumVals>Unknown enum value(s): {0}. Use -u to skip invalid values.</UR.BetterFilter.CmdBadEnumVals>
 

@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using HarmonyLib;
 using RimWorld;
@@ -30,7 +33,7 @@ public static class Patch_DummyApplyFilterButton
     {
         if (tDef.defName != DummyDefName) return true;
 
-        float curY = (float)CurYField.GetValue(__instance);
+        var curY = (float)CurYField.GetValue(__instance);
         var filter = FilterField.GetValue(__instance) as ThingFilter;
 
         if (Dialog.Dialog_AdvancedFilters.IsPreview)
@@ -46,8 +49,8 @@ public static class Patch_DummyApplyFilterButton
         LabelLeftMethod.Invoke(__instance,
             new object[] { (string)tDef.LabelCap, (string)tDef.description, nestLevel, 0f, null, 0f });
 
-        float btnWidth = 90f;
-        Rect btnRect = new Rect(__instance.ColumnWidth - btnWidth - 4f, curY, btnWidth,
+        var btnWidth = 90f;
+        var btnRect = new Rect(__instance.ColumnWidth - btnWidth - 4f, curY, btnWidth,
             __instance.lineHeight);
         if (Widgets.ButtonText(btnRect, "UR.BetterFilter.ApplyFilter".Translate()))
         {
@@ -75,14 +78,14 @@ public static class Patch_DummyApplyFilterButton
             return;
         }
 
-        bool changed = false;
+        var changed = false;
         foreach (var sfDef in allowedFilters)
         {
             if (filter.Allows(sfDef)) continue; // already allowed → skip
 
             // This filter worker is currently disallowed.
             // Disallow all ThingDefs that match it.
-            foreach (ThingDef def in DefDatabase<ThingDef>.AllDefsListForReading)
+            foreach (var def in DefDatabase<ThingDef>.AllDefsListForReading)
             {
                 if (!def.PlayerAcquirable || def.virtualDefParent != null) continue;
                 if (!sfDef.Worker.CanEverMatch(def)) continue;
@@ -97,7 +100,7 @@ public static class Patch_DummyApplyFilterButton
         if (changed)
         {
             SoundDefOf.Click.PlayOneShotOnCamera();
-            var cb = AccessTools.FieldRefAccess<ThingFilter, System.Action>(
+            var cb = AccessTools.FieldRefAccess<ThingFilter, Action>(
                 "settingsChangedCallback")(filter);
             cb?.Invoke();
         }

@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using BetterFilter.Contents.Utils;
 using HarmonyLib;
-using RimWorld;
 using Verse;
 
 namespace BetterFilter.Contents.Patches;
@@ -49,9 +48,8 @@ public static class Patch_FilterCategoryOrder
             .Where(d => parentFilter == null || parentFilter.Allows(d))
             .ToList();
         var hidden = new HashSet<string>();
-        for (int i = 0; i < MutexPairDefNames.Length; i++)
+        foreach (var pair in MutexPairDefNames)
         {
-            var pair = MutexPairDefNames[i];
             var defA = DefDatabase<SpecialThingFilterDef>.GetNamed(pair[0], errorOnFail: false);
             var defB = DefDatabase<SpecialThingFilterDef>.GetNamed(pair[1], errorOnFail: false);
             if (defA == null || defB == null) continue;

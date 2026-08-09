@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using BetterFilter.Contents.Filters;
 using HarmonyLib;
 using RimWorld;
@@ -9,24 +12,24 @@ namespace BetterFilter.Contents.Dialog;
 
 public class Dialog_AdvancedFilters : Window
 {
-    private readonly ThingFilter sourceFilter;
-    private readonly ThingFilter workingFilter;
-    private readonly ThingFilterUI.UIState previewState = new();
-    internal readonly List<FilterComponent> components = new();
+    private readonly ThingFilter _sourceFilter;
+    private readonly ThingFilter _workingFilter;
+    private readonly ThingFilterUI.UIState _previewState = new();
+    internal readonly List<FilterComponent> Components = new();
 
     /// <summary>Items relevant to this dialog context (null = all ever-storable).</summary>
-    private readonly List<ThingDef> ContextDefs;
+    private readonly List<ThingDef> _contextDefs;
 
     private bool _dirty = true;
     internal void MarkDirty() => _dirty = true;
-    private Vector2 leftScroll = Vector2.zero;
-    private Vector2 overrideScroll = Vector2.zero;
+    private Vector2 _leftScroll = Vector2.zero;
+    private Vector2 _overrideScroll = Vector2.zero;
 
 
     /// <summary>
     /// All ThingDefs that can ever appear in a real storage filter.
     /// Derived from vanilla's CreateOnlyEverStorableThingFilter — includes
-    /// Items + minifiable Buildings, excludes pawns, plants, stumps, and
+    /// Items + minimizable Buildings, excludes pawns, plants, stumps, and
     /// special constructions like Character Editor tombs.
     /// </summary>
     private static readonly List<ThingDef> EverStorableDefs = new();
@@ -43,18 +46,18 @@ public class Dialog_AdvancedFilters : Window
     /// <summary>
     /// Per-item overrides: true = force-allow, false = force-disallow.
     /// </summary>
-    internal readonly Dictionary<ThingDef, bool> manualOverrides = new();
+    internal readonly Dictionary<ThingDef, bool> ManualOverrides = new();
 
     /// <summary>
     /// Snapshot of what the filter components alone produce (before manual overrides).
     /// </summary>
-    private readonly HashSet<ThingDef> componentAllowedDefs = new();
+    private readonly HashSet<ThingDef> _componentAllowedDefs = new();
 
     static Dialog_AdvancedFilters()
     {
         // Use the same ever-storable filter as vanilla storage zones.
         EverStorableParent = ThingFilter.CreateOnlyEverStorableThingFilter();
-        foreach (ThingDef def in EverStorableParent.AllowedThingDefs)
+        foreach (var def in EverStorableParent.AllowedThingDefs)
         {
             if (!def.PlayerAcquirable) continue;
             if (def.virtualDefParent != null) continue;
@@ -71,28 +74,28 @@ public class Dialog_AdvancedFilters : Window
         closeOnAccept = false;
         absorbInputAroundWindow = true;
         layer = WindowLayer.Dialog;
-        sourceFilter = source;
-        ContextDefs = contextDefs;
-        workingFilter = new ThingFilter();
-        workingFilter.SetDisallowAll();
-        foreach (var def in (ContextDefs ?? EverStorableDefs))
-            workingFilter.SetAllow(def, true);
+        _sourceFilter = source;
+        _contextDefs = contextDefs;
+        _workingFilter = new ThingFilter();
+        _workingFilter.SetDisallowAll();
+        foreach (var def in (_contextDefs ?? EverStorableDefs))
+            _workingFilter.SetAllow(def, true);
 
         // Sync HP / quality ranges from the real filter so the preview is faithful.
-        workingFilter.AllowedHitPointsPercents = source.AllowedHitPointsPercents;
-        workingFilter.AllowedQualityLevels = source.AllowedQualityLevels;
+        _workingFilter.AllowedHitPointsPercents = source.AllowedHitPointsPercents;
+        _workingFilter.AllowedQualityLevels = source.AllowedQualityLevels;
 
         // Sync non-whitelisted filter-worker states (the ones the dialog
         // does NOT manage — e.g. AllowDeadManApparel).  Whitelisted workers
         // are left at their default (allowed) because filter components are
         // empty at construction.
         var whitelistSet = new HashSet<string>(
-            BetterFilterMod.Settings?.allowedFilterDefNames ?? new List<string>());
-        foreach (SpecialThingFilterDef sfDef in DefDatabase<SpecialThingFilterDef>.AllDefsListForReading)
+            BetterFilterMod.Settings?.AllowedFilterDefNames ?? new List<string>());
+        foreach (var sfDef in DefDatabase<SpecialThingFilterDef>.AllDefsListForReading)
         {
             if (!sfDef.configurable) continue;
             if (whitelistSet.Contains(sfDef.defName)) continue;
-            workingFilter.SetAllow(sfDef, source.Allows(sfDef));
+            _workingFilter.SetAllow(sfDef, source.Allows(sfDef));
         }
     }
 
@@ -106,18 +109,18 @@ public class Dialog_AdvancedFilters : Window
             _dirty = false;
         }
 
-        float topBarH = 32f;
-        Rect topRect = inRect.TopPartPixels(topBarH);
+        var topBarH = 32f;
+        var topRect = inRect.TopPartPixels(topBarH);
         DrawTopBar(topRect);
         inRect.yMin += topBarH + 6f;
 
-        Rect leftRect = inRect.LeftPart(0.55f).ContractedBy(4f);
+        var leftRect = inRect.LeftPart(0.55f).ContractedBy(4f);
         DrawLeftPanel(leftRect);
 
-        float leftW = inRect.width * 0.55f;
+        var leftW = inRect.width * 0.55f;
         inRect.xMin += leftW + 8f;
 
-        Rect rightRect = inRect.ContractedBy(4f);
+        var rightRect = inRect.ContractedBy(4f);
         DrawRightPanel(rightRect);
 
     }
@@ -126,23 +129,23 @@ public class Dialog_AdvancedFilters : Window
 
     private void DrawTopBar(Rect rect)
     {
-        float btnW = (rect.width - 18f) / 4f;
-        float x = rect.x;
+        var btnW = (rect.width - 18f) / 4f;
+        var x = rect.x;
 
         if (Widgets.ButtonText(new Rect(x, rect.y, btnW, rect.height), "UR.BetterFilter.New".Translate()))
         {
             var opts = new List<FloatMenuOption>
             {
                 new FloatMenuOption("UR.BetterFilter.FilterWorker".Translate(), () =>
-                    { components.Add(new FilterComponent_Worker()); _dirty = true; }),
+                    { Components.Add(new FilterComponent_Worker()); _dirty = true; }),
                 new FloatMenuOption("UR.BetterFilter.ModFilter".Translate(), () =>
-                    { components.Add(new FilterComponent_Mod()); _dirty = true; }),
+                    { Components.Add(new FilterComponent_Mod()); _dirty = true; }),
                 new FloatMenuOption("UR.BetterFilter.NumericFilter".Translate(), () =>
-                    { components.Add(new FilterComponent_Numeric()); _dirty = true; }),
+                    { Components.Add(new FilterComponent_Numeric()); _dirty = true; }),
                 new FloatMenuOption("UR.BetterFilter.CategoryFilter".Translate(), () =>
-                    { components.Add(new FilterComponent_Category()); _dirty = true; }),
+                    { Components.Add(new FilterComponent_Category()); _dirty = true; }),
                 new FloatMenuOption("UR.BetterFilter.EnumFilter".Translate(), () =>
-                    { components.Add(new FilterComponent_Enum()); _dirty = true; }),
+                    { Components.Add(new FilterComponent_Enum()); _dirty = true; }),
                 new FloatMenuOption("UR.BetterFilter.CommandInput".Translate(), () =>
                     Find.WindowStack.Add(new Dialog_CommandInput(this)))
             };
@@ -151,7 +154,7 @@ public class Dialog_AdvancedFilters : Window
         x += btnW + 6f;
         if (Widgets.ButtonText(new Rect(x, rect.y, btnW, rect.height), "UR.BetterFilter.Save".Translate()))
         {
-            Find.WindowStack.Add(new Dialog_SaveFilter(this, components));
+            Find.WindowStack.Add(new Dialog_SaveFilter(this, Components));
         }
         x += btnW + 6f;
         if (Widgets.ButtonText(new Rect(x, rect.y, btnW, rect.height), "UR.BetterFilter.Load".Translate()))
@@ -164,9 +167,9 @@ public class Dialog_AdvancedFilters : Window
         {
             // Synced on open — user modifications to non-whitelisted filter
             // workers are intentional.  Full copy is correct.
-            sourceFilter.CopyAllowancesFrom(workingFilter);
-            var cb = AccessTools.FieldRefAccess<ThingFilter, System.Action>(
-                "settingsChangedCallback")(sourceFilter);
+            _sourceFilter.CopyAllowancesFrom(_workingFilter);
+            var cb = AccessTools.FieldRefAccess<ThingFilter, Action>(
+                "settingsChangedCallback")(_sourceFilter);
             cb?.Invoke();
             Messages.Message("UR.BetterFilter.ApplyMessage".Translate(),
                 MessageTypeDefOf.NeutralEvent, false);
@@ -181,7 +184,7 @@ public class Dialog_AdvancedFilters : Window
     /// </summary>
     private bool ComputeComponentResult(ThingDef def)
     {
-        foreach (var c in components)
+        foreach (var c in Components)
         {
             if (c is FilterComponent_Item) continue; // items are manual overrides
             if (!c.AllowsDef(def))
@@ -193,32 +196,29 @@ public class Dialog_AdvancedFilters : Window
     private void RebuildWorkingFilter()
     {
         // 0. Rebuild manualOverrides entirely from FilterComponent_Item instances.
-        manualOverrides.Clear();
-        foreach (var c in components)
+        ManualOverrides.Clear();
+        foreach (var c in Components)
         {
-            if (c is FilterComponent_Item it && it.selectedDef != null)
-                manualOverrides[it.selectedDef] = it.isWhitelist;
+            if (c is FilterComponent_Item { SelectedDef: not null } it)
+                ManualOverrides[it.SelectedDef] = it.IsWhitelist;
         }
 
         // 1. Compute what the filter components alone produce.
-        var relevantDefs = ContextDefs ?? EverStorableDefs;
-        componentAllowedDefs.Clear();
+        var relevantDefs = _contextDefs ?? EverStorableDefs;
+        _componentAllowedDefs.Clear();
         foreach (var def in relevantDefs)
         {
             if (ComputeComponentResult(def))
-                componentAllowedDefs.Add(def);
+                _componentAllowedDefs.Add(def);
         }
 
         // 2. Apply manual overrides on top: they take the highest priority.
         foreach (var def in relevantDefs)
         {
-            bool allow;
-            if (manualOverrides.TryGetValue(def, out bool manual))
-                allow = manual;               // manual override wins
-            else
-                allow = componentAllowedDefs.Contains(def); // component result
+            var allow = ManualOverrides.TryGetValue(def, out var manual) ? manual : // manual override wins
+                _componentAllowedDefs.Contains(def); // component result
 
-            workingFilter.SetAllow(def, allow);
+            _workingFilter.SetAllow(def, allow);
         }
     }
 
@@ -227,44 +227,45 @@ public class Dialog_AdvancedFilters : Window
     private void DrawLeftPanel(Rect rect)
     {
         Widgets.DrawMenuSection(rect);
-        Rect inner = rect.ContractedBy(6f);
+        var inner = rect.ContractedBy(6f);
 
         // Reserve space for the per-item override panel at the bottom.
-        float overrideH = 120f;
-        Rect overrideRect = inner.BottomPartPixels(overrideH);
+        var overrideH = 120f;
+        var overrideRect = inner.BottomPartPixels(overrideH);
         inner.yMax -= overrideH + 6f;
 
         // Separate item components (rendered in override panel, not here).
-        var itemComps = components.OfType<FilterComponent_Item>().ToList();
-        var regularComps = components.Where(c => c is not FilterComponent_Item).ToList();
+        var itemComps = Components.OfType<FilterComponent_Item>().ToList();
+        var regularComps = Components.Where(c => c is not FilterComponent_Item).ToList();
 
         // Filter components area.
-        float blockW = inner.width - 16f;
-        for (int i = 0; i < regularComps.Count; i++)
-            regularComps[i].LayoutWidth = blockW;
+        var blockW = inner.width - 16f;
+        foreach (var t in regularComps)
+            t.LayoutWidth = blockW;
 
-        float totalH = 0f;
-        for (int i = 0; i < regularComps.Count; i++)
-            totalH += regularComps[i].BlockHeight + 4f;
+        var totalH = 0f;
+        foreach (var t in regularComps)
+            totalH += t.BlockHeight + 4f;
+
         if (totalH < inner.height) totalH = inner.height;
 
-        Rect viewRect = new Rect(0f, 0f, blockW, totalH);
-        Widgets.BeginScrollView(inner, ref leftScroll, viewRect);
-        float cy = 0f;
-        for (int i = 0; i < regularComps.Count; i++)
+        var viewRect = new Rect(0f, 0f, blockW, totalH);
+        Widgets.BeginScrollView(inner, ref _leftScroll, viewRect);
+        var cy = 0f;
+        for (var i = 0; i < regularComps.Count; i++)
         {
-            Rect blockRect = new Rect(0f, cy, blockW, regularComps[i].BlockHeight);
+            var blockRect = new Rect(0f, cy, blockW, regularComps[i].BlockHeight);
             regularComps[i].Draw(blockRect, this, i);
             cy += regularComps[i].BlockHeight + 4f;
         }
         // Deferred deletion (all filter types except item, handled in override panel).
-        int removed = components.RemoveAll(c =>
-            c is FilterComponent_Item == false && (
-            (c is FilterComponent_Worker w && w.pendingDelete)
-            || (c is FilterComponent_Mod m && m.pendingDelete)
-            || (c is FilterComponent_Numeric n && n.pendingDelete)
-            || (c is FilterComponent_Category cat && cat.pendingDelete)
-            || (c is FilterComponent_Enum en && en.pendingDelete)));
+        var removed = Components.RemoveAll(c =>
+            c is not FilterComponent_Item && (
+            c is FilterComponent_Worker { PendingDelete: true } ||
+            c is FilterComponent_Mod { PendingDelete: true } ||
+            c is FilterComponent_Numeric { PendingDelete: true } ||
+            c is FilterComponent_Category { PendingDelete: true } ||
+            c is FilterComponent_Enum { PendingDelete: true }));
         if (removed > 0) _dirty = true;
         Widgets.EndScrollView();
 
@@ -276,74 +277,74 @@ public class Dialog_AdvancedFilters : Window
     private void DrawPerItemOverride(Rect rect, List<FilterComponent_Item> itemComps)
     {
         Widgets.DrawBoxSolid(rect, new Color(0.1f, 0.1f, 0.15f));
-        Rect inner = rect.ContractedBy(4f);
+        var inner = rect.ContractedBy(4f);
 
         // Split: valid-def components vs error-only components
-        var validComps = itemComps.Where(it => it.selectedDef != null).ToList();
-        var errorComps = itemComps.Where(it => it.errorDefName != null).ToList();
+        var validComps = itemComps.Where(it => it.SelectedDef != null).ToList();
+        var errorComps = itemComps.Where(it => it.ErrorDefName != null).ToList();
 
-        int totalRows = validComps.Count + errorComps.Count;
+        var totalRows = validComps.Count + errorComps.Count;
         Widgets.Label(inner.TopPartPixels(20f), "UR.BetterFilter.ManualOverrides".Translate(validComps.Count));
         inner.yMin += 22f;
 
         // "Add" button → creates FilterComponent_Item
-        Rect addRect = new Rect(inner.xMax - 60f, inner.y - 20f, 60f, 20f);
+        var addRect = new Rect(inner.xMax - 60f, inner.y - 20f, 60f, 20f);
         if (Widgets.ButtonText(addRect, "UR.BetterFilter.Add".Translate()))
         {
-            var addDefs = ContextDefs ?? EverStorableDefs;
+            var addDefs = _contextDefs ?? EverStorableDefs;
             var items = addDefs
-                .Where(d => !validComps.Any(it => it.selectedDef == d))
+                .Where(d => !validComps.Any(it => it.SelectedDef == d))
                 .OrderBy(d => d.LabelCap.ToString())
-                .Select(d => ((string) d.LabelCap, (System.Action)(() =>
+                .Select(d => ((string) d.LabelCap, (Action)(() =>
                 {
-                    bool componentAllows = componentAllowedDefs.Contains(d);
-                    components.Add(new FilterComponent_Item
+                    var componentAllows = _componentAllowedDefs.Contains(d);
+                    Components.Add(new FilterComponent_Item
                     {
-                        selectedDef = d,
-                        isWhitelist = !componentAllows
+                        SelectedDef = d,
+                        IsWhitelist = !componentAllows
                     });
                     _dirty = true;
                 }))).ToList();
-            Find.WindowStack.Add(new Dialog.Dialog_SearchableSelect(
+            Find.WindowStack.Add(new Dialog_SearchableSelect(
                 "UR.BetterFilter.ItemFilter".Translate(), items));
         }
 
         // Scrollable override list
-        float rowH = 24f;
-        float listH = Mathf.Max(totalRows * (rowH + 2f), inner.height);
-        Rect listView = new Rect(0f, 0f, inner.width - 16f, listH);
-        Widgets.BeginScrollView(inner, ref overrideScroll, listView);
-        float ry = 0f;
+        var rowH = 24f;
+        var listH = Mathf.Max(totalRows * (rowH + 2f), inner.height);
+        var listView = new Rect(0f, 0f, inner.width - 16f, listH);
+        Widgets.BeginScrollView(inner, ref _overrideScroll, listView);
+        var ry = 0f;
 
         // 1. Valid-def components: checkbox + label + delete
         foreach (var it in validComps)
         {
-            var def = it.selectedDef;
-            bool curAllow = it.isWhitelist;
-            bool isActive = curAllow != componentAllowedDefs.Contains(def);
+            var def = it.SelectedDef;
+            var curAllow = it.IsWhitelist;
+            var isActive = curAllow != _componentAllowedDefs.Contains(def);
 
-            Rect rowRect = new Rect(0f, ry, listView.width, rowH);
+            var rowRect = new Rect(0f, ry, listView.width, rowH);
 
-            Rect checkRect = new Rect(rowRect.x, rowRect.y, 24f, 24f);
-            Texture2D tex = curAllow ? Widgets.CheckboxOnTex : Widgets.CheckboxOffTex;
+            var checkRect = new Rect(rowRect.x, rowRect.y, 24f, 24f);
+            var tex = curAllow ? Widgets.CheckboxOnTex : Widgets.CheckboxOffTex;
             if (Widgets.ButtonImage(checkRect, tex))
             {
-                it.isWhitelist = !curAllow;
+                it.IsWhitelist = !curAllow;
                 _dirty = true;
                 SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
             }
 
-            Color oldColor = GUI.color;
+            var oldColor = GUI.color;
             if (!isActive) GUI.color = Color.gray;
-            Rect labelRect = new Rect(checkRect.xMax + 4f, rowRect.y,
+            var labelRect = new Rect(checkRect.xMax + 4f, rowRect.y,
                 rowRect.width - 52f, rowH);
             Widgets.Label(labelRect, def.LabelCap);
             GUI.color = oldColor;
 
-            Rect delRect = new Rect(rowRect.xMax - 20f, rowRect.y, 20f, 20f);
+            var delRect = new Rect(rowRect.xMax - 20f, rowRect.y, 20f, 20f);
             if (Widgets.ButtonImage(delRect, TexButton.Delete))
             {
-                it.pendingDelete = true;
+                it.PendingDelete = true;
                 _dirty = true;
                 SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
             }
@@ -354,13 +355,13 @@ public class Dialog_AdvancedFilters : Window
         // 2. Error-only components: gray *name
         if (errorComps.Count > 0)
         {
-            Color oldColor = GUI.color;
+            var oldColor = GUI.color;
             GUI.color = Color.gray;
             foreach (var it in errorComps)
             {
-                Rect rowRect = new Rect(0f, ry, listView.width, rowH);
+                var rowRect = new Rect(0f, ry, listView.width, rowH);
                 Widgets.Label(new Rect(rowRect.x + 28f, rowRect.y,
-                    rowRect.width - 52f, rowH), "*" + it.errorDefName);
+                    rowRect.width - 52f, rowH), "*" + it.ErrorDefName);
                 ry += rowH + 2f;
             }
             GUI.color = oldColor;
@@ -369,7 +370,7 @@ public class Dialog_AdvancedFilters : Window
         Widgets.EndScrollView();
 
         // Deferred deletion of item components
-        if (components.RemoveAll(c => c is FilterComponent_Item it && it.pendingDelete) > 0)
+        if (Components.RemoveAll(c => c is FilterComponent_Item { PendingDelete: true }) > 0)
             _dirty = true;
 
         if (validComps.Count == 0 && errorComps.Count == 0)
@@ -383,12 +384,12 @@ public class Dialog_AdvancedFilters : Window
     private void DrawRightPanel(Rect rect)
     {
         Widgets.DrawMenuSection(rect);
-        Rect inner = rect.ContractedBy(4f);
+        var inner = rect.ContractedBy(4f);
 
         // Count allowed items in context (exclude our dummy items).
-        var relevantDefs = ContextDefs ?? EverStorableDefs;
-        int allowedCount = relevantDefs
-            .Count(d => workingFilter.Allows(d));
+        var relevantDefs = _contextDefs ?? EverStorableDefs;
+        var allowedCount = relevantDefs
+            .Count(d => _workingFilter.Allows(d));
         Widgets.Label(inner.TopPartPixels(20f), "UR.BetterFilter.PreviewAllowItemCount".Translate(allowedCount));
         inner.yMin += 22f;
 
@@ -407,7 +408,7 @@ public class Dialog_AdvancedFilters : Window
 
         var treeParent = BuildContextParentFilter();
 
-        ThingFilterUI.DoThingFilterConfigWindow(inner, previewState, workingFilter,
+        ThingFilterUI.DoThingFilterConfigWindow(inner, _previewState, _workingFilter,
             parentFilter: treeParent,
             forceHiddenDefs: hiddenDefs,
             forceHiddenFilters: hiddenFilters,
@@ -418,16 +419,16 @@ public class Dialog_AdvancedFilters : Window
 
     /// <summary>
     /// Build a parent filter that restricts the preview tree to context-relevant items.
-    /// null → all ever-storable (vanilla behaviour).
+    /// null → all ever-storable (vanilla behavior).
     /// </summary>
     private ThingFilter BuildContextParentFilter()
     {
-        if (ContextDefs == null)
+        if (_contextDefs == null)
             return EverStorableParent;
 
         var f = new ThingFilter();
         f.SetDisallowAll();
-        foreach (var def in ContextDefs)
+        foreach (var def in _contextDefs)
             f.SetAllow(def, true);
         return f;
     }

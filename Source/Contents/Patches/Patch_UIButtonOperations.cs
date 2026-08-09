@@ -30,7 +30,7 @@ public static class Patch_UIButtonOperations
         var hiddenSet = forceHiddenDefs as HashSet<ThingDef>
             ?? (forceHiddenDefs != null ? new HashSet<ThingDef>(forceHiddenDefs) : null);
 
-        foreach (ThingDef td in DefDatabase<ThingDef>.AllDefsListForReading)
+        foreach (var td in DefDatabase<ThingDef>.AllDefsListForReading)
         {
             if (!td.PlayerAcquirable) continue;
             if (td.virtualDefParent != null) continue;
@@ -53,7 +53,7 @@ public static class Patch_UIButtonOperations
         ref bool forceHideHitPointsConfig, ref bool forceHideQualityConfig,
         bool showMentalBreakChanceRange, List<ThingDef> suppressSmallVolumeTags, Map map)
     {
-        bool isPreview = Dialog.Dialog_AdvancedFilters.IsPreview;
+        var isPreview = Dialog.Dialog_AdvancedFilters.IsPreview;
 
         // Hide vanilla HP/Quality sliders — Patch_InjectFilterSliders will
         // place them inside UR_BetterFilter.  Dummy items are now in all
@@ -65,27 +65,27 @@ public static class Patch_UIButtonOperations
         }
 
         Widgets.DrawMenuSection(rect);
-        float num = rect.width - 2f;
+        var num = rect.width - 2f;
 
         if (!isPreview)
         {
-            float btnWidth = (num - 12f) / 3f;
-            float y = rect.y + 3f;
+            var btnWidth = (num - 12f) / 3f;
+            var y = rect.y + 3f;
 
             // ── Clear / Invert / Allow ──
-            Rect clearRect = new Rect(rect.x + 3f, y, btnWidth, 24f);
+            var clearRect = new Rect(rect.x + 3f, y, btnWidth, 24f);
             if (Widgets.ButtonText(clearRect, "ClearAll".Translate()))
             {
                 filter.SetDisallowAll(forceHiddenDefs, forceHiddenFilters);
                 SoundDefOf.Checkbox_TurnedOff.PlayOneShotOnCamera();
             }
-            Rect invertRect = new Rect(clearRect.xMax + 3f, y, btnWidth, 24f);
+            var invertRect = new Rect(clearRect.xMax + 3f, y, btnWidth, 24f);
             if (Widgets.ButtonText(invertRect, "UR.BetterFilter.Invert".Translate()))
             {
                 InvertThingDefs(filter, parentFilter, forceHiddenDefs);
                 SoundDefOf.Checkbox_TurnedOff.PlayOneShotOnCamera();
             }
-            Rect allowRect = new Rect(invertRect.xMax + 3f, y, btnWidth, 24f);
+            var allowRect = new Rect(invertRect.xMax + 3f, y, btnWidth, 24f);
             if (Widgets.ButtonText(allowRect, "AllowAll".Translate()))
             {
                 filter.SetAllowAll(parentFilter);
@@ -98,15 +98,15 @@ public static class Patch_UIButtonOperations
         }
 
         // ── Search bar + expand/collapse ──
-        float contentWidth = rect.width - 16f;
-        float interGap = 6f;
-        float iconGap = 8f;
-        float iconTotal = IconSize * 2f + interGap + iconGap + 3f;
-        Rect searchRect = new Rect(rect.x + 3f, rect.yMin + 3f,
+        var contentWidth = rect.width - 16f;
+        var interGap = 6f;
+        var iconGap = 8f;
+        var iconTotal = IconSize * 2f + interGap + iconGap + 3f;
+        var searchRect = new Rect(rect.x + 3f, rect.yMin + 3f,
             contentWidth - 3f - iconTotal, 24f);
         state.quickSearch.OnGUI(searchRect);
 
-        Rect expandRect = new Rect(searchRect.xMax + interGap, searchRect.y + 3f, IconSize, IconSize);
+        var expandRect = new Rect(searchRect.xMax + interGap, searchRect.y + 3f, IconSize, IconSize);
         var displayRoot = parentFilter != null
             ? parentFilter.DisplayRootCategory
             : filter.RootNode;
@@ -114,7 +114,7 @@ public static class Patch_UIButtonOperations
             TreeExpandCollapse.ToggleOneLevel(displayRoot.catDef, openMask, true);
         TooltipHandler.TipRegion(expandRect, "ExpandOneLevel".Translate());
 
-        Rect compressRect = new Rect(expandRect.xMax + iconGap, searchRect.y + 3f, IconSize, IconSize);
+        var compressRect = new Rect(expandRect.xMax + iconGap, searchRect.y + 3f, IconSize, IconSize);
         if (TexBetterFilter.CollapseIcon != null && Widgets.ButtonImage(compressRect, TexBetterFilter.CollapseIcon))
             TreeExpandCollapse.ToggleOneLevel(displayRoot.catDef, openMask, false);
         TooltipHandler.TipRegion(compressRect, "CollapseOneLevel".Translate());
@@ -159,17 +159,17 @@ public static class Patch_UIButtonOperations
     {
         if (!PolicyFilterClipboard.IsOutfitOrFoodDialog()) return;
 
-        bool isApparel = PolicyFilterClipboard.IsApparelDialog();
-        float y = rect.yMin + 4f;
+        var isApparel = PolicyFilterClipboard.IsApparelDialog();
+        var y = rect.yMin + 4f;
 
-        Rect advRect = new Rect(rect.x + 3f, y, btnWidth, 24f);
+        var advRect = new Rect(rect.x + 3f, y, btnWidth, 24f);
         if (Widgets.ButtonText(advRect, "UR.BetterFilter.AdvancedFilter".Translate()))
         {
             var ctxDefs = PolicyFilterClipboard.GetContextDefs();
             Find.WindowStack.Add(new Dialog.Dialog_AdvancedFilters(filter, ctxDefs));
         }
 
-        Rect copyRect = new Rect(advRect.xMax + 3f, y, btnWidth, 24f);
+        var copyRect = new Rect(advRect.xMax + 3f, y, btnWidth, 24f);
         if (Widgets.ButtonText(copyRect, "UR.BetterFilter.Copy".Translate()))
         {
             PolicyFilterClipboard.Copy(isApparel, filter);
@@ -180,7 +180,7 @@ public static class Patch_UIButtonOperations
                 MessageTypeDefOf.NeutralEvent, false);
         }
 
-        Rect pasteRect = new Rect(copyRect.xMax + 3f, y, btnWidth, 24f);
+        var pasteRect = new Rect(copyRect.xMax + 3f, y, btnWidth, 24f);
         if (Widgets.ButtonText(pasteRect, "UR.BetterFilter.Paste".Translate()))
         {
             if (PolicyFilterClipboard.HasClipboard(isApparel))
@@ -202,9 +202,9 @@ public static class Patch_UIButtonOperations
         bool forceHideHitPointsConfig, bool forceHideQualityConfig,
         bool showMentalBreakChanceRange, List<ThingDef> suppressSmallVolumeTags, Map map)
     {
-        TreeNode_ThingCategory node = filter.RootNode;
-        bool hpFlag = true;
-        bool qualityFlag = true;
+        var node = filter.RootNode;
+        var hpFlag = true;
+        var qualityFlag = true;
         if (parentFilter != null)
         {
             node = parentFilter.DisplayRootCategory;
@@ -214,23 +214,23 @@ public static class Patch_UIButtonOperations
         rect.xMax -= 4f;
         rect.yMax -= 6f;
 
-        if (!PerStateViewHeight.TryGetValue(state, out float vh))
+        if (!PerStateViewHeight.TryGetValue(state, out var vh))
             vh = rect.height;
-        Rect viewRect = new Rect(0f, 0f, rect.width - 16f, vh);
-        Rect visibleRect = new Rect(0f, 0f, rect.width, rect.height);
+        var viewRect = new Rect(0f, 0f, rect.width - 16f, vh);
+        var visibleRect = new Rect(0f, 0f, rect.width, rect.height);
         visibleRect.position += state.scrollPosition;
         Widgets.BeginScrollView(rect, ref state.scrollPosition, viewRect);
-        float sy = 2f;
+        var sy = 2f;
         if (hpFlag && !forceHideHitPointsConfig)
-            ThingFilterUI_DrawHitPoints(ref sy, viewRect.width, filter);
+            ThingFilterUIDrawHitPoints(ref sy, viewRect.width, filter);
         if (qualityFlag && !forceHideQualityConfig)
-            ThingFilterUI_DrawQuality(ref sy, viewRect.width, filter);
+            ThingFilterUIDrawQuality(ref sy, viewRect.width, filter);
         if (ModsConfig.AnomalyActive && showMentalBreakChanceRange)
-            ThingFilterUI_DrawMentalBreak(ref sy, viewRect.width, filter);
-        float num2 = sy;
-        Rect rect4 = new Rect(0f, sy, viewRect.width, 9999f);
+            ThingFilterUIDrawMentalBreak(ref sy, viewRect.width, filter);
+        var num2 = sy;
+        var rect4 = new Rect(0f, sy, viewRect.width, 9999f);
         visibleRect.position -= rect4.position;
-        Listing_TreeThingFilter listing = new Listing_TreeThingFilter(filter, parentFilter,
+        var listing = new Listing_TreeThingFilter(filter, parentFilter,
             forceHiddenDefs, forceHiddenFilters, suppressSmallVolumeTags, state.quickSearch.filter);
         listing.Begin(rect4);
         Patch_FilterCategoryOrder.IsRenderingTreeUI = true;
@@ -246,7 +246,7 @@ public static class Patch_UIButtonOperations
         state.quickSearch.noResultsMatched = listing.matchCount == 0;
         if (Event.current.type == EventType.Layout)
         {
-            float computed = num2 + listing.CurHeight + 90f;
+            var computed = num2 + listing.CurHeight + 90f;
             PerStateViewHeight[state] = computed;
             ThingFilterUI_SetViewHeight(computed);
         }
@@ -260,13 +260,13 @@ public static class Patch_UIButtonOperations
 
     private delegate void DrawConfigDelegate(ref float y, float width, ThingFilter filter);
 
-    private static readonly DrawConfigDelegate ThingFilterUI_DrawHitPoints =
+    private static readonly DrawConfigDelegate ThingFilterUIDrawHitPoints =
         AccessTools.MethodDelegate<DrawConfigDelegate>(
             AccessTools.Method(typeof(ThingFilterUI), "DrawHitPointsFilterConfig"));
-    private static readonly DrawConfigDelegate ThingFilterUI_DrawQuality =
+    private static readonly DrawConfigDelegate ThingFilterUIDrawQuality =
         AccessTools.MethodDelegate<DrawConfigDelegate>(
             AccessTools.Method(typeof(ThingFilterUI), "DrawQualityFilterConfig"));
-    private static readonly DrawConfigDelegate ThingFilterUI_DrawMentalBreak =
+    private static readonly DrawConfigDelegate ThingFilterUIDrawMentalBreak =
         AccessTools.MethodDelegate<DrawConfigDelegate>(
             AccessTools.Method(typeof(ThingFilterUI), "DrawMentalBreakFilterConfig"));
 }

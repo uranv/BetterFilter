@@ -60,14 +60,14 @@ public class Command_StoragePaste : Command_Action
         var cf = cb.filter;
 
         // ThingDef allowances: AND
-        foreach (ThingDef def in DefDatabase<ThingDef>.AllDefs)
+        foreach (var def in DefDatabase<ThingDef>.AllDefs)
         {
             if (!def.PlayerAcquirable || def.virtualDefParent != null) continue;
             f.SetAllow(def, f.Allows(def) && cf.Allows(def));
         }
 
         // SpecialThingFilterDef: AND
-        foreach (SpecialThingFilterDef sf in DefDatabase<SpecialThingFilterDef>.AllDefs)
+        foreach (var sf in DefDatabase<SpecialThingFilterDef>.AllDefs)
             f.SetAllow(sf, f.Allows(sf) && cf.Allows(sf));
 
         // 滑块过滤器的合并覆盖容易引起用户的意料外修改，停用此部分
@@ -100,14 +100,14 @@ public class Command_StoragePaste : Command_Action
         var cf = cb.filter;
 
         // ThingDef allowances: OR
-        foreach (ThingDef def in DefDatabase<ThingDef>.AllDefs)
+        foreach (var def in DefDatabase<ThingDef>.AllDefs)
         {
             if (!def.PlayerAcquirable || def.virtualDefParent != null) continue;
             f.SetAllow(def, f.Allows(def) || cf.Allows(def));
         }
 
         // SpecialThingFilterDef: OR
-        foreach (SpecialThingFilterDef sf in DefDatabase<SpecialThingFilterDef>.AllDefs)
+        foreach (var sf in DefDatabase<SpecialThingFilterDef>.AllDefs)
             f.SetAllow(sf, f.Allows(sf) || cf.Allows(sf));
 
         // 滑块过滤器的合并覆盖容易引起用户的意料外修改，停用此部分

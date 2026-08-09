@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Globalization;
 using System.Reflection;
 using RimWorld;
 using UnityEngine;
@@ -10,23 +11,24 @@ public enum NumericPropertyType
 {
     StackLimit,
     Mass,
+    MarketValue,
     Custom // set customPropPath
 }
 
 public class FilterComponent_Numeric : FilterComponent
 {
-    public NumericPropertyType propertyType = NumericPropertyType.StackLimit;
+    public NumericPropertyType PropertyType = NumericPropertyType.StackLimit;
     /// <summary>Reflection path for Custom property type, e.g. "recipeMaker?.displayPriority".</summary>
-    public string customPropPath;
+    public string CustomPropPath;
     /// <summary>Invalid property name from CLI -u mode. When set, filter always allows.</summary>
-    public string errorPropName;
-    public float min;
-    public float max;
-    public string minBuffer = "";
-    public string maxBuffer = "";
-    public bool isLoose = true;
-    public bool isWhitelist = true;
-    public bool pendingDelete;
+    public string ErrorPropName;
+    public float Min;
+    public float Max;
+    public string MinBuffer = "";
+    public string MaxBuffer = "";
+    public bool IsLoose = true;
+    public bool IsWhitelist = true;
+    public bool PendingDelete;
 
     public override float BlockHeight => 52f;
 
@@ -34,13 +36,16 @@ public class FilterComponent_Numeric : FilterComponent
     {
         get
         {
-            if (errorPropName != null)
-                return "*" + errorPropName;
-            if (propertyType == NumericPropertyType.Custom && !string.IsNullOrEmpty(customPropPath))
-                return customPropPath;
-            return propertyType == NumericPropertyType.StackLimit
-                ? "UR.BetterFilter.StackLimit".Translate()
-                : "UR.BetterFilter.MassKg".Translate();
+            if (ErrorPropName != null)
+                return "*" + ErrorPropName;
+            if (PropertyType == NumericPropertyType.Custom && !string.IsNullOrEmpty(CustomPropPath))
+                return CustomPropPath;
+            return PropertyType switch
+            {
+                NumericPropertyType.StackLimit => "UR.BetterFilter.StackLimit".Translate(),
+                NumericPropertyType.MarketValue => "UR.BetterFilter.MarketValue".Translate(),
+                _ => "UR.BetterFilter.MassKg".Translate()
+            };
         }
     }
 
@@ -49,12 +54,12 @@ public class FilterComponent_Numeric : FilterComponent
     {
         if (def == null || string.IsNullOrEmpty(path)) return null;
         object current = def;
-        string[] segments = path.Split('.');
-        for (int i = 0; i < segments.Length; i++)
+        var segments = path.Split('.');
+        for (var i = 0; i < segments.Length; i++)
         {
-            string seg = segments[i];
-            bool optional = seg.EndsWith("?");
-            string memberName = optional ? seg.Substring(0, seg.Length - 1) : seg;
+            var seg = segments[i];
+            var optional = seg.EndsWith("?");
+            var memberName = optional ? seg.Substring(0, seg.Length - 1) : seg;
             var type = current.GetType();
             // Try property first, then field (RimWorld often uses public fields)
             var member = (MemberInfo)type.GetProperty(memberName,
@@ -66,7 +71,9 @@ public class FilterComponent_Numeric : FilterComponent
             if (current == null)
             {
                 if (optional && i < segments.Length - 1)
-                    return null;
+                {
+                }
+
                 return null;
             }
         }
@@ -78,46 +85,56 @@ public class FilterComponent_Numeric : FilterComponent
     }
 
     // Empty buffer = no limit; non-empty = limit applies.
-    private bool HasMinLimit => !string.IsNullOrWhiteSpace(minBuffer);
-    private bool HasMaxLimit => !string.IsNullOrWhiteSpace(maxBuffer);
+    private bool HasMinLimit => !string.IsNullOrWhiteSpace(MinBuffer);
+    private bool HasMaxLimit => !string.IsNullOrWhiteSpace(MaxBuffer);
 
     public override bool AllowsDef(ThingDef def)
     {
-        if (errorPropName != null)
+        if (ErrorPropName != null)
             return true;
 
         // Resolve custom path once, then compute value and existence
         int? customVal = null;
-        if (propertyType == NumericPropertyType.Custom && !string.IsNullOrEmpty(customPropPath))
-            customVal = ResolveIntPath(def, customPropPath);
+        if (PropertyType == NumericPropertyType.Custom && !string.IsNullOrEmpty(CustomPropPath))
+            customVal = ResolveIntPath(def, CustomPropPath);
 
         bool hasProp;
         float? val;
-        if (propertyType == NumericPropertyType.Custom)
+        if (PropertyType == NumericPropertyType.Custom)
         {
             hasProp = customVal.HasValue;
-            val = hasProp ? (float?)customVal.Value : null;
+            val = hasProp ? customVal.Value : null;
         }
-        else if (propertyType == NumericPropertyType.StackLimit)
+        else if (PropertyType == NumericPropertyType.StackLimit)
         {
             hasProp = def.stackLimit > 0;
             val = def.stackLimit;
         }
-        else
+        else if (PropertyType == NumericPropertyType.MarketValue)
+        {
+            hasProp = def.statBases?.Any(s => s.stat == StatDefOf.MarketValue) == true;
+            val = hasProp ? def.GetStatValueAbstract(StatDefOf.MarketValue) : null;
+        }
+        else// if (PropertyType == NumericPropertyType.Mass)
         {
             hasProp = def.statBases?.Any(s => s.stat == StatDefOf.Mass) == true;
             val = def.BaseMass;
         }
+        // else
+        // {
+        //     hasProp = false;
+        //     val = null;
+        // }
 
-        if (!hasProp) return isLoose;
-        if (val == null) return isLoose;
+        if (!hasProp) return IsLoose;
+        if (val == null) return IsLoose;
 
-        float value = val.Value;
-        if (HasMinLimit && value < min) return !isWhitelist;
-        if (HasMaxLimit && value > max) return !isWhitelist;
+        var value = val.Value;
+        if (HasMinLimit && value < Min) return !IsWhitelist;
+        if (HasMaxLimit && value > Max) return !IsWhitelist;
 
-        bool inRange = (!HasMinLimit || value >= min) && (!HasMaxLimit || value <= max);
-        return isWhitelist ? inRange : !inRange;
+        var inRange = (!HasMinLimit || value >= Min) && (!HasMaxLimit || value <= Max);
+        return IsWhitelist ? inRange : !inRange;
     }
 
     public override string ToCommandLine()
@@ -125,22 +142,24 @@ public class FilterComponent_Numeric : FilterComponent
         var parts = new List<string> { "value", "-d" };
 
         // Property name
-        if (errorPropName != null)
-            parts.Add(errorPropName);
-        else if (propertyType == NumericPropertyType.Custom && !string.IsNullOrEmpty(customPropPath))
-            parts.Add("'" + customPropPath + "'");
-        else if (propertyType == NumericPropertyType.Mass)
+        if (ErrorPropName != null)
+            parts.Add(ErrorPropName);
+        else if (PropertyType == NumericPropertyType.Custom && !string.IsNullOrEmpty(CustomPropPath))
+            parts.Add("'" + CustomPropPath + "'");
+        else if (PropertyType == NumericPropertyType.Mass)
             parts.Add("Mass");
+        else if (PropertyType == NumericPropertyType.MarketValue)
+            parts.Add("MarketValue");
         else
             parts.Add("StackLimit");
 
         // Values
         parts.Add("-v");
-        parts.Add(FormatNumericValue(minBuffer));
-        parts.Add(FormatNumericValue(maxBuffer));
+        parts.Add(FormatNumericValue(MinBuffer));
+        parts.Add(FormatNumericValue(MaxBuffer));
 
-        if (!isWhitelist) parts.Add("-b");
-        if (isLoose) parts.Add("-l");
+        if (!IsWhitelist) parts.Add("-b");
+        if (IsLoose) parts.Add("-l");
         parts.Add("-u");
         return string.Join(" ", parts);
     }
@@ -148,61 +167,61 @@ public class FilterComponent_Numeric : FilterComponent
     private static string FormatNumericValue(string buffer)
     {
         if (string.IsNullOrWhiteSpace(buffer)) return "n";
-        if (float.TryParse(buffer, out float v) && v < 0f)
-            return "n" + (-v).ToString();
+        if (float.TryParse(buffer, out var v) && v < 0f)
+            return "n" + (-v).ToString(CultureInfo.InvariantCulture);
         return buffer;
     }
 
     public override void Draw(Rect rect, Dialog.Dialog_AdvancedFilters dialog, int index)
     {
         Widgets.DrawBoxSolid(rect, new Color(0.18f, 0.18f, 0.2f));
-        Rect inner = rect.ContractedBy(4f);
+        var inner = rect.ContractedBy(4f);
 
-        float contentX = Utils.FilterDrawer.DrawBadge(inner, isWhitelist, isLoose,
-            () => { isWhitelist = !isWhitelist; dialog.MarkDirty(); },
+        var contentX = Utils.FilterDrawer.DrawBadge(inner, IsWhitelist, IsLoose,
+            () => { IsWhitelist = !IsWhitelist; dialog.MarkDirty(); },
             "UR.BetterFilter.WhitelistNumericTooltip", "UR.BetterFilter.BlacklistNumericTooltip");
 
-        Utils.FilterDrawer.DrawOptionTopRight(inner, isLoose,
-            () => { isLoose = !isLoose; dialog.MarkDirty(); });
-        Utils.FilterDrawer.DrawDeleteTopRight(inner, ref pendingDelete);
+        Utils.FilterDrawer.DrawOptionTopRight(inner, IsLoose,
+            () => { IsLoose = !IsLoose; dialog.MarkDirty(); });
+        Utils.FilterDrawer.DrawDeleteTopRight(inner, ref PendingDelete);
 
-        float inputW = 60f;
-        float topRowY = inner.y + Utils.FilterDrawer.BadgeMargin;
+        var inputW = 60f;
+        var topRowY = inner.y + Utils.FilterDrawer.BadgeMargin;
 
-        Color oldColor = GUI.color;
-        if (errorPropName != null)
+        var oldColor = GUI.color;
+        if (ErrorPropName != null)
             GUI.color = Color.gray;
 
-        float maxLabelW = Text.CalcSize("UR.BetterFilter.MaxValue".Translate()).x;
-        Rect maxLabelRect = new Rect(contentX, topRowY - 3f, maxLabelW, 20f);
-        Rect maxInputRect = new Rect(maxLabelRect.xMax + 4f, topRowY - 5f, inputW, 22f);
-        float prevMax = max;
-        string prevMaxBuf = maxBuffer;
+        var maxLabelW = Text.CalcSize("UR.BetterFilter.MaxValue".Translate()).x;
+        var maxLabelRect = new Rect(contentX, topRowY - 3f, maxLabelW, 20f);
+        var maxInputRect = new Rect(maxLabelRect.xMax + 4f, topRowY - 5f, inputW, 22f);
+        var prevMax = Max;
+        var prevMaxBuf = MaxBuffer;
         Widgets.Label(maxLabelRect, "UR.BetterFilter.MaxValue".Translate());
-        Widgets.TextFieldNumeric(maxInputRect, ref max, ref maxBuffer,
+        Widgets.TextFieldNumeric(maxInputRect, ref Max, ref MaxBuffer,
             float.MinValue, float.MaxValue);
 
-        float bottomRowY = inner.yMax - Utils.FilterDrawer.BtnSize;
-        float minLabelW = Text.CalcSize("UR.BetterFilter.MinValue".Translate()).x;
-        Rect minLabelRect = new Rect(contentX, bottomRowY - 2f, minLabelW, 20f);
-        Rect minInputRect = new Rect(minLabelRect.xMax + 4f, bottomRowY - 4f, inputW, 22f);
-        float prevMin = min;
-        string prevMinBuf = minBuffer;
+        var bottomRowY = inner.yMax - Utils.FilterDrawer.BtnSize;
+        var minLabelW = Text.CalcSize("UR.BetterFilter.MinValue".Translate()).x;
+        var minLabelRect = new Rect(contentX, bottomRowY - 2f, minLabelW, 20f);
+        var minInputRect = new Rect(minLabelRect.xMax + 4f, bottomRowY - 4f, inputW, 22f);
+        var prevMin = Min;
+        var prevMinBuf = MinBuffer;
         Widgets.Label(minLabelRect, "UR.BetterFilter.MinValue".Translate());
-        Widgets.TextFieldNumeric(minInputRect, ref min, ref minBuffer,
+        Widgets.TextFieldNumeric(minInputRect, ref Min, ref MinBuffer,
             float.MinValue, float.MaxValue);
 
-        if (HasMaxLimit && HasMinLimit && max < min)
-            max = min;
+        if (HasMaxLimit && HasMinLimit && Max < Min)
+            Max = Min;
 
-        if (min != prevMin || max != prevMax
-            || minBuffer != prevMinBuf || maxBuffer != prevMaxBuf)
+        if (!Mathf.Approximately(Min, prevMin) || !Mathf.Approximately(Max, prevMax)
+                                               || MinBuffer != prevMinBuf || MaxBuffer != prevMaxBuf)
             dialog.MarkDirty();
 
-        float propTextW = Text.CalcSize(PropertyLabel).x;
-        float gap = Utils.FilterDrawer.BtnGap;
-        float propTextX = inner.xMax - Utils.FilterDrawer.BtnSize - gap - propTextW;
-        Rect propTextRect = new Rect(propTextX, bottomRowY - 1f, propTextW, 20f);
+        var propTextW = Text.CalcSize(PropertyLabel).x;
+        var gap = Utils.FilterDrawer.BtnGap;
+        var propTextX = inner.xMax - Utils.FilterDrawer.BtnSize - gap - propTextW;
+        var propTextRect = new Rect(propTextX, bottomRowY - 1f, propTextW, 20f);
         Widgets.Label(propTextRect, PropertyLabel);
 
         GUI.color = oldColor;
@@ -212,9 +231,11 @@ public class FilterComponent_Numeric : FilterComponent
             var opts = new List<FloatMenuOption>
             {
                 new FloatMenuOption("UR.BetterFilter.StackLimit".Translate(),
-                    () => { propertyType = NumericPropertyType.StackLimit; customPropPath = null; dialog.MarkDirty(); }),
+                    () => { PropertyType = NumericPropertyType.StackLimit; CustomPropPath = null; dialog.MarkDirty(); }),
                 new FloatMenuOption("UR.BetterFilter.MassKg".Translate(),
-                    () => { propertyType = NumericPropertyType.Mass; customPropPath = null; dialog.MarkDirty(); })
+                    () => { PropertyType = NumericPropertyType.Mass; CustomPropPath = null; dialog.MarkDirty(); }),
+                new FloatMenuOption("UR.BetterFilter.MarketValue".Translate(),
+                    () => { PropertyType = NumericPropertyType.MarketValue; CustomPropPath = null; dialog.MarkDirty(); })
             };
             Find.WindowStack.Add(new FloatMenu(opts));
         }, "UR.BetterFilter.SelectPropertyTooltip");

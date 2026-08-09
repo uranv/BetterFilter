@@ -13,17 +13,17 @@ namespace BetterFilter.Contents.Dialog;
 /// </summary>
 public class Dialog_SearchableSelect : Window
 {
-    private readonly string title;
-    private readonly List<(string label, Action onSelect)> allItems;
-    private List<(string label, Action onSelect)> filteredItems;
-    private string searchText = "";
-    private Vector2 scrollPos;
+    private readonly string _title;
+    private readonly List<(string label, Action onSelect)> _allItems;
+    private List<(string label, Action onSelect)> _filteredItems;
+    private string _searchText = "";
+    private Vector2 _scrollPos;
 
     public Dialog_SearchableSelect(string title, IEnumerable<(string label, Action onSelect)> items)
     {
-        this.title = title;
-        allItems = items.ToList();
-        filteredItems = new List<(string label, Action onSelect)>(allItems);
+        _title = title;
+        _allItems = items.ToList();
+        _filteredItems = new List<(string label, Action onSelect)>(_allItems);
         forcePause = true;
         draggable = true;
         doCloseX = true;
@@ -36,25 +36,25 @@ public class Dialog_SearchableSelect : Window
 
     public override void DoWindowContents(Rect inRect)
     {
-        Rect titleRect = inRect.TopPartPixels(28f);
+        var titleRect = inRect.TopPartPixels(28f);
         Text.Font = GameFont.Medium;
-        Widgets.Label(titleRect, title);
+        Widgets.Label(titleRect, _title);
         Text.Font = GameFont.Small;
         inRect.yMin += 30f;
 
         // ── Search field ──
-        Rect searchRect = inRect.TopPartPixels(28f);
-        string newSearch = Widgets.TextField(searchRect, searchText);
-        if (newSearch != searchText)
+        var searchRect = inRect.TopPartPixels(28f);
+        var newSearch = Widgets.TextField(searchRect, _searchText);
+        if (newSearch != _searchText)
         {
-            searchText = newSearch;
+            _searchText = newSearch;
             UpdateFilter();
         }
         inRect.yMin += 34f;
 
         // ── Results ──
-        Rect listRect = inRect.ContractedBy(2f);
-        if (filteredItems.Count == 0)
+        var listRect = inRect.ContractedBy(2f);
+        if (_filteredItems.Count == 0)
         {
             GUI.color = Color.gray;
             Widgets.Label(listRect, "UR.BetterFilter.NoSearchResults".Translate());
@@ -62,14 +62,14 @@ public class Dialog_SearchableSelect : Window
             return;
         }
 
-        float rowH = 24f;
-        float totalH = filteredItems.Count * rowH;
-        Rect viewRect = new Rect(0f, 0f, listRect.width - 16f, totalH);
-        Widgets.BeginScrollView(listRect, ref scrollPos, viewRect);
-        float y = 0f;
-        foreach (var item in filteredItems)
+        var rowH = 24f;
+        var totalH = _filteredItems.Count * rowH;
+        var viewRect = new Rect(0f, 0f, listRect.width - 16f, totalH);
+        Widgets.BeginScrollView(listRect, ref _scrollPos, viewRect);
+        var y = 0f;
+        foreach (var item in _filteredItems)
         {
-            Rect rowRect = new Rect(0f, y, viewRect.width, rowH);
+            var rowRect = new Rect(0f, y, viewRect.width, rowH);
             if (Widgets.ButtonInvisible(rowRect))
             {
                 item.onSelect();
@@ -85,14 +85,14 @@ public class Dialog_SearchableSelect : Window
 
     private void UpdateFilter()
     {
-        if (string.IsNullOrEmpty(searchText))
+        if (string.IsNullOrEmpty(_searchText))
         {
-            filteredItems = new List<(string, Action)>(allItems);
+            _filteredItems = new List<(string, Action)>(_allItems);
         }
         else
         {
-            string q = searchText.ToLowerInvariant();
-            filteredItems = allItems
+            var q = _searchText.ToLowerInvariant();
+            _filteredItems = _allItems
                 .Where(it => it.label.ToLowerInvariant().Contains(q))
                 .ToList();
         }
@@ -100,9 +100,9 @@ public class Dialog_SearchableSelect : Window
 
     public override void OnAcceptKeyPressed()
     {
-        if (filteredItems.Count > 0)
+        if (_filteredItems.Count > 0)
         {
-            filteredItems[0].onSelect();
+            _filteredItems[0].onSelect();
             Close();
         }
     }

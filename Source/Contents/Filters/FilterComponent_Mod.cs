@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -7,11 +8,11 @@ namespace BetterFilter.Contents.Filters;
 
 public class FilterComponent_Mod : FilterComponent
 {
-    public List<string> packageIds = new();
+    public List<string> PackageIds = new();
     /// <summary>PackageIds that failed to resolve (set by CLI parser in -u mode).</summary>
-    public List<string> errorPackageIds = new();
-    public bool isWhitelist = true;
-    public bool pendingDelete;
+    public List<string> ErrorPackageIds = new();
+    public bool IsWhitelist = true;
+    public bool PendingDelete;
 
     private HashSet<ThingDef> _cachedModDefs;
     private int _cachedPackageIdsHash;
@@ -20,11 +21,11 @@ public class FilterComponent_Mod : FilterComponent
     {
         get
         {
-            if (packageIds.Count == 0 && errorPackageIds.Count == 0)
+            if (PackageIds.Count == 0 && ErrorPackageIds.Count == 0)
                 return "UR.BetterFilter.NoModsSelected".Translate();
-            if (packageIds.Count == 0)
+            if (PackageIds.Count == 0)
                 return "";
-            var nameList = packageIds
+            var nameList = PackageIds
                 .Select(pid => LoadedModManager.RunningMods
                     .FirstOrDefault(m => m.PackageId == pid)?.Name ?? pid).ToList();
             return string.Join(", ", nameList);
@@ -32,8 +33,8 @@ public class FilterComponent_Mod : FilterComponent
     }
 
     private string ErrorText =>
-        errorPackageIds.Count == 0 ? "" :
-        string.Join(", ", errorPackageIds.Select(n => "*" + n));
+        ErrorPackageIds.Count == 0 ? "" :
+        string.Join(", ", ErrorPackageIds.Select(n => "*" + n));
 
     private string FullDisplayText =>
         (ValidText + "  " + ErrorText).Trim();
@@ -43,15 +44,15 @@ public class FilterComponent_Mod : FilterComponent
 
     public HashSet<ThingDef> GetModDefs()
     {
-        int hash = ContentHash(packageIds);
+        var hash = ContentHash(PackageIds);
         if (_cachedModDefs != null && _cachedPackageIdsHash == hash)
             return _cachedModDefs;
         _cachedModDefs = new HashSet<ThingDef>();
-        if (packageIds.Count == 0) { _cachedPackageIdsHash = hash; return _cachedModDefs; }
-        var idSet = new HashSet<string>(packageIds);
-        foreach (ThingDef def in DefDatabase<ThingDef>.AllDefsListForReading)
+        if (PackageIds.Count == 0) { _cachedPackageIdsHash = hash; return _cachedModDefs; }
+        var idSet = new HashSet<string>(PackageIds);
+        foreach (var def in DefDatabase<ThingDef>.AllDefsListForReading)
         {
-            string pid = def.modContentPack?.PackageId;
+            var pid = def.modContentPack?.PackageId;
             if (pid != null && idSet.Contains(pid))
                 _cachedModDefs.Add(def);
         }
@@ -61,25 +62,25 @@ public class FilterComponent_Mod : FilterComponent
 
     private static int ContentHash(List<string> items)
     {
-        int h = 0;
-        foreach (string s in items)
+        var h = 0;
+        foreach (var s in items)
             h = unchecked(h * 31 + s.GetHashCode());
         return h;
     }
 
     public override bool AllowsDef(ThingDef def)
     {
-        if (packageIds.Count == 0) return true;
-        bool matches = GetModDefs().Contains(def);
-        return isWhitelist ? matches : !matches;
+        if (PackageIds.Count == 0) return true;
+        var matches = GetModDefs().Contains(def);
+        return IsWhitelist ? matches : !matches;
     }
 
     public override string ToCommandLine()
     {
         var parts = new List<string> { "mod", "-d" };
-        parts.AddRange(packageIds);
-        parts.AddRange(errorPackageIds);
-        if (!isWhitelist) parts.Add("-b");
+        parts.AddRange(PackageIds);
+        parts.AddRange(ErrorPackageIds);
+        if (!IsWhitelist) parts.Add("-b");
         parts.Add("-u");
         return string.Join(" ", parts);
     }
@@ -87,63 +88,63 @@ public class FilterComponent_Mod : FilterComponent
     public override void Draw(Rect rect, Dialog.Dialog_AdvancedFilters dialog, int index)
     {
         Widgets.DrawBoxSolid(rect, new Color(0.18f, 0.18f, 0.2f));
-        Rect inner = rect.ContractedBy(4f);
+        var inner = rect.ContractedBy(4f);
 
-        float contentX = Utils.FilterDrawer.DrawBadge(inner, isWhitelist, false,
-            () => { isWhitelist = !isWhitelist; dialog.MarkDirty(); },
+        var contentX = Utils.FilterDrawer.DrawBadge(inner, IsWhitelist, false,
+            () => { IsWhitelist = !IsWhitelist; dialog.MarkDirty(); },
             "UR.BetterFilter.WhitelistModTooltip", "UR.BetterFilter.BlacklistModTooltip");
 
-        Utils.FilterDrawer.DrawDeleteTopRight(inner, ref pendingDelete);
+        Utils.FilterDrawer.DrawDeleteTopRight(inner, ref PendingDelete);
 
-        float textMaxW = Utils.FilterDrawer.TextMaxWidth(inner, contentX);
-        float topY = inner.y + Utils.FilterDrawer.BadgeMargin;
+        var textMaxW = Utils.FilterDrawer.TextMaxWidth(inner, contentX);
+        var topY = inner.y + Utils.FilterDrawer.BadgeMargin;
 
-        if (errorPackageIds.Count > 0 && packageIds.Count > 0)
+        if (ErrorPackageIds.Count > 0 && PackageIds.Count > 0)
         {
-            float validH = Text.CalcHeight(ValidText, textMaxW);
-            Rect validRect = new Rect(contentX, topY, textMaxW, validH);
+            var validH = Text.CalcHeight(ValidText, textMaxW);
+            var validRect = new Rect(contentX, topY, textMaxW, validH);
             Widgets.Label(validRect, ValidText);
 
-            float afterValidX = contentX + Text.CalcSize(ValidText).x + 4f;
-            float errorW = textMaxW - (afterValidX - contentX);
+            var afterValidX = contentX + Text.CalcSize(ValidText).x + 4f;
+            var errorW = textMaxW - (afterValidX - contentX);
             if (errorW < 40f) { afterValidX = contentX; }
-            Color oldColor = GUI.color;
+            var oldColor = GUI.color;
             GUI.color = Color.gray;
-            Rect errorRect = new Rect(afterValidX, topY, textMaxW - (afterValidX - contentX), validH);
+            var errorRect = new Rect(afterValidX, topY, textMaxW - (afterValidX - contentX), validH);
             Widgets.Label(errorRect, ErrorText);
             GUI.color = oldColor;
         }
-        else if (packageIds.Count == 0 && errorPackageIds.Count > 0)
+        else if (PackageIds.Count == 0 && ErrorPackageIds.Count > 0)
         {
-            Color oldColor = GUI.color;
+            var oldColor = GUI.color;
             GUI.color = Color.gray;
-            float h = Text.CalcHeight(ErrorText, textMaxW);
-            Rect r = new Rect(contentX, topY, textMaxW, h);
+            var h = Text.CalcHeight(ErrorText, textMaxW);
+            var r = new Rect(contentX, topY, textMaxW, h);
             Widgets.Label(r, ErrorText);
             GUI.color = oldColor;
         }
         else
         {
-            float h = Text.CalcHeight(ValidText, textMaxW);
-            Rect r = new Rect(contentX, topY, textMaxW, h);
+            var h = Text.CalcHeight(ValidText, textMaxW);
+            var r = new Rect(contentX, topY, textMaxW, h);
             Widgets.Label(r, ValidText);
         }
 
-        Utils.FilterDrawer.DrawMinusBottomRight(inner, packageIds.Count > 0, () =>
+        Utils.FilterDrawer.DrawMinusBottomRight(inner, PackageIds.Count > 0, () =>
         {
-            packageIds.RemoveAt(packageIds.Count - 1);
+            PackageIds.RemoveAt(PackageIds.Count - 1);
             _cachedModDefs = null;
             dialog.MarkDirty();
         });
         Utils.FilterDrawer.DrawPlusBottomRight(inner, () =>
         {
-            var existing = new HashSet<string>(packageIds);
+            var existing = new HashSet<string>(PackageIds);
             var items = LoadedModManager.RunningMods
                 .Where(m => !existing.Contains(m.PackageId))
                 .OrderBy(m => m.Name)
                 .Select(m => (m.Name, (Action)(() =>
                 {
-                    packageIds.Add(m.PackageId);
+                    PackageIds.Add(m.PackageId);
                     _cachedModDefs = null;
                     dialog.MarkDirty();
                 }))).ToList();

@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
-using UnityEngine;
 using Verse;
 using Verse.Sound;
 
@@ -64,7 +63,7 @@ public static class PolicyFilterClipboard
     /// <summary>AND / OR overlay paste logic (shared with Command_StoragePaste).</summary>
     public static void PasteInto(ThingFilter target, ThingFilter clipboard, bool isAnd)
     {
-        foreach (ThingDef def in DefDatabase<ThingDef>.AllDefs)
+        foreach (var def in DefDatabase<ThingDef>.AllDefs)
         {
             if (!def.PlayerAcquirable || def.virtualDefParent != null) continue;
             target.SetAllow(def, isAnd
@@ -72,7 +71,7 @@ public static class PolicyFilterClipboard
                 : target.Allows(def) || clipboard.Allows(def));
         }
 
-        foreach (SpecialThingFilterDef sf in DefDatabase<SpecialThingFilterDef>.AllDefs)
+        foreach (var sf in DefDatabase<SpecialThingFilterDef>.AllDefs)
             target.SetAllow(sf, isAnd
                 ? target.Allows(sf) && clipboard.Allows(sf)
                 : target.Allows(sf) || clipboard.Allows(sf));

@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using HarmonyLib;
-using RimWorld;
 using UnityEngine;
 using Verse;
 
@@ -49,12 +48,11 @@ public static class Patch_DummyAdvancedFiltersButton
             new object[] { (string)tDef.LabelCap, (string)tDef.description, nestLevel, 0f, null, 0f });
 
         float btnWidth = 90f;
-        Rect btnRect = new Rect(__instance.ColumnWidth - btnWidth - 4f, curY, btnWidth,
+        var btnRect = new Rect(__instance.ColumnWidth - btnWidth - 4f, curY, btnWidth,
             __instance.lineHeight);
         if (Widgets.ButtonText(btnRect, "UR.BetterFilter.OpenAdvanced".Translate()))
         {
-            var filter = FilterField.GetValue(__instance) as ThingFilter;
-            if (filter != null)
+            if (FilterField.GetValue(__instance) is ThingFilter filter)
             {
                 var pf = Patch_FilterCategoryOrder.GetParentFilter(__instance);
                 var ctxDefs = GetContextDefsFromParentFilter(pf);

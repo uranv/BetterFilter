@@ -1,3 +1,4 @@
+using System;
 using RimWorld;
 using UnityEngine;
 using Verse;
@@ -25,7 +26,7 @@ public static class FilterDrawer
     public static float DrawBadge(Rect inner, bool isWhitelist, bool isLoose,
         Action onToggle, string whitelistTipKey, string blacklistTipKey)
     {
-        Rect r = new Rect(inner.x + BadgeMargin, inner.y + BadgeMargin, BadgeSize, BadgeSize);
+        var r = new Rect(inner.x + BadgeMargin, inner.y + BadgeMargin, BadgeSize, BadgeSize);
 
         Texture2D tex;
         if (isLoose)
@@ -49,7 +50,7 @@ public static class FilterDrawer
     /// </summary>
     public static void DrawDeleteTopRight(Rect inner, ref bool pendingDelete)
     {
-        Rect r = new Rect(inner.xMax - BtnSize, inner.y, BtnSize, BtnSize);
+        var r = new Rect(inner.xMax - BtnSize, inner.y, BtnSize, BtnSize);
         if (Widgets.ButtonImage(r, TexBetterFilter.DeleteIcon))
         {
             pendingDelete = true;
@@ -63,7 +64,7 @@ public static class FilterDrawer
     /// </summary>
     public static void DrawOptionTopRight(Rect inner, bool isLoose, Action onToggle)
     {
-        Rect r = new Rect(inner.xMax - BtnSize * 2f - BtnGap, inner.y, BtnSize, BtnSize);
+        var r = new Rect(inner.xMax - BtnSize * 2f - BtnGap, inner.y, BtnSize, BtnSize);
         if (Widgets.ButtonImage(r, TexBetterFilter.OptionIcon))
         {
             onToggle();
@@ -80,7 +81,7 @@ public static class FilterDrawer
     /// </summary>
     public static void DrawMinusBottomRight(Rect inner, bool hasItems, Action onRemove)
     {
-        Rect r = new Rect(inner.xMax - BtnSize * 2f - BtnGap, inner.yMax - BtnSize, BtnSize, BtnSize);
+        var r = new Rect(inner.xMax - BtnSize * 2f - BtnGap, inner.yMax - BtnSize, BtnSize, BtnSize);
         if (hasItems)
         {
             if (Widgets.ButtonImage(r, TexBetterFilter.MinusIcon))
@@ -97,7 +98,7 @@ public static class FilterDrawer
     /// </summary>
     public static void DrawPlusBottomRight(Rect inner, Action onAdd, string tooltipKey)
     {
-        Rect r = new Rect(inner.xMax - BtnSize, inner.yMax - BtnSize, BtnSize, BtnSize);
+        var r = new Rect(inner.xMax - BtnSize, inner.yMax - BtnSize, BtnSize, BtnSize);
         if (Widgets.ButtonImage(r, TexBetterFilter.PlusIcon))
             onAdd();
         TooltipHandler.TipRegion(r, tooltipKey.Translate());
@@ -132,10 +133,10 @@ public static class FilterDrawer
     /// </summary>
     public static void DrawText(Rect inner, float contentX, string text)
     {
-        float maxW = TextMaxWidth(inner, contentX);
-        float textH = Text.CalcHeight(text, maxW);
-        float topY = inner.y + BadgeMargin;
-        Rect textRect = new Rect(contentX, topY, maxW, textH);
+        var maxW = TextMaxWidth(inner, contentX);
+        var textH = Text.CalcHeight(text, maxW);
+        var topY = inner.y + BadgeMargin;
+        var textRect = new Rect(contentX, topY, maxW, textH);
         Widgets.Label(textRect, text);
     }
 
@@ -151,9 +152,9 @@ public static class FilterDrawer
     /// </summary>
     public static float MinBlockHeight(string text, float blockWidth)
     {
-        float maxW = TextMaxWidthFromBlock(blockWidth);
-        float textH = Text.CalcHeight(text, maxW);
-        float minInnerH = BadgeMargin + textH + BtnSize;
+        var maxW = TextMaxWidthFromBlock(blockWidth);
+        var textH = Text.CalcHeight(text, maxW);
+        var minInnerH = BadgeMargin + textH + BtnSize;
         return Mathf.Max(52f, minInnerH + 8f); // +8 for ContractedBy(4f) × 2
     }
 }

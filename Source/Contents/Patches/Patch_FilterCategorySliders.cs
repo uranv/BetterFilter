@@ -1,6 +1,5 @@
 using System.Reflection;
 using HarmonyLib;
-using RimWorld;
 using UnityEngine;
 using Verse;
 
@@ -38,25 +37,25 @@ public static class Patch_InjectFilterSliders
 
         // —— Visibility: mirror vanilla ThingFilterUI checks ——
         var parentFilter = Patch_FilterCategoryOrder.GetParentFilter(__instance);
-        bool hpFlag = parentFilter == null || parentFilter.allowedHitPointsConfigurable;
-        bool qFlag = parentFilter == null || parentFilter.allowedQualitiesConfigurable;
+        var hpFlag = parentFilter == null || parentFilter.allowedHitPointsConfigurable;
+        var qFlag = parentFilter == null || parentFilter.allowedQualitiesConfigurable;
 
         if (!hpFlag && !qFlag) return;
 
         var visibleRect = (Rect)VisibleRectField.GetValue(__instance);
-        float curY = (float)CurYField.GetValue(__instance);
-        float columnWidth = __instance.ColumnWidth;
-        float indentX = (float)XAtIndentLevelMethod.Invoke(__instance, new object[] { indentLevel + 1 });
-        float sliderWidth = columnWidth - 2f * indentX;
+        var curY = (float)CurYField.GetValue(__instance);
+        var columnWidth = __instance.ColumnWidth;
+        var indentX = (float)XAtIndentLevelMethod.Invoke(__instance, new object[] { indentLevel + 1 });
+        var sliderWidth = columnWidth - 2f * indentX;
 
         // --- Hit Points slider ---
         if (hpFlag)
         {
-            Rect hpRow = new Rect(0f, curY, columnWidth, 37f);
+            var hpRow = new Rect(0f, curY, columnWidth, 37f);
             if (visibleRect.Overlaps(hpRow))
             {
-                Rect hpRect = new Rect(indentX, curY, sliderWidth, 32f);
-                FloatRange hpRange = filter.AllowedHitPointsPercents;
+                var hpRect = new Rect(indentX, curY, sliderWidth, 32f);
+                var hpRange = filter.AllowedHitPointsPercents;
                 Widgets.FloatRange(hpRect, 1, ref hpRange, 0f, 1f,
                     "HitPoints", ToStringStyle.PercentZero, 0f, GameFont.Small, null, 0.01f);
                 filter.AllowedHitPointsPercents = hpRange;
@@ -67,11 +66,11 @@ public static class Patch_InjectFilterSliders
         // --- Quality slider ---
         if (qFlag)
         {
-            Rect qRow = new Rect(0f, curY, columnWidth, 37f);
+            var qRow = new Rect(0f, curY, columnWidth, 37f);
             if (visibleRect.Overlaps(qRow))
             {
-                Rect qRect = new Rect(indentX, curY, sliderWidth, 32f);
-                QualityRange qRange = filter.AllowedQualityLevels;
+                var qRect = new Rect(indentX, curY, sliderWidth, 32f);
+                var qRange = filter.AllowedQualityLevels;
                 Widgets.QualityRange(qRect, 876813230, ref qRange);
                 filter.AllowedQualityLevels = qRange;
             }

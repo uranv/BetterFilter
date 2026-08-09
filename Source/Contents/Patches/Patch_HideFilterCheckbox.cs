@@ -52,7 +52,7 @@ public static class Patch_HideFilterCheckbox
         var searchFilter = (QuickSearchFilter)SearchFilterField.GetValue(__instance);
         Color? textColor = null;
 
-        if (searchFilter != null && searchFilter.Active)
+        if (searchFilter is { Active: true })
         {
             if (searchFilter.Matches(node.catDef.label))
             {
@@ -89,12 +89,13 @@ public static class Patch_HideFilterCheckbox
     /// </summary>
     private static bool HasNonDummyThingDefs(ThingCategoryDef catDef)
     {
-        for (int i = 0; i < catDef.childThingDefs.Count; i++)
+        foreach (var t in catDef.childThingDefs)
         {
-            var name = catDef.childThingDefs[i].defName;
+            var name = t.defName;
             if (name != "UR_DummyFilterItem" && name != "UR_DummyApplyFilterItem")
                 return true;
         }
+
         return false;
     }
 }
