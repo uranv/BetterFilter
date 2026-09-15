@@ -1,9 +1,33 @@
 using System.Collections.Generic;
 using System.Linq;
+using BetterFilter.Contents.Dialog;
+using BetterFilter.Contents.Utils;
+using RimWorld;
 using UnityEngine;
 using Verse;
 
 namespace BetterFilter.Contents;
+
+public class FilterTargetDefinition : IExposable
+{
+    public string Type = "Numeric";
+    public string XPath = "";
+    public string Name = "";
+
+    public FilterTargetDefinition Clone() => new()
+    {
+        Type = Type,
+        XPath = XPath,
+        Name = Name
+    };
+
+    public void ExposeData()
+    {
+        Scribe_Values.Look(ref Type, "type", "Numeric");
+        Scribe_Values.Look(ref XPath, "xpath", "");
+        Scribe_Values.Look(ref Name, "name", "");
+    }
+}
 
 public class BetterFilterMod : Mod
 {
@@ -16,7 +40,12 @@ public class BetterFilterMod : Mod
 
     public override string SettingsCategory() => "[UR] Better Filter Settings";
 
-    private enum SettingsTab { Introduction, AppliableFilterWorker }
+    private enum SettingsTab
+    {
+        Introduction,
+        AppliableFilterWorker,
+        FilterTargets
+    }
 
     private SettingsTab _currentTab = SettingsTab.Introduction;
 
@@ -37,6 +66,11 @@ public class BetterFilterMod : Mod
                 delegate { _currentTab = SettingsTab.AppliableFilterWorker; },
                 _currentTab == SettingsTab.AppliableFilterWorker
             ),
+            new TabRecord(
+                "UR.BetterFilter.TabFilterTargets".Translate(),
+                delegate { _currentTab = SettingsTab.FilterTargets; },
+                _currentTab == SettingsTab.FilterTargets
+            ),
         };
         TabDrawer.DrawTabs(contentRect, tabs);
 
@@ -51,10 +85,14 @@ public class BetterFilterMod : Mod
             case SettingsTab.AppliableFilterWorker:
                 DrawAppliableTab(innerRect);
                 break;
+            case SettingsTab.FilterTargets:
+                DrawFilterTargetsTab(innerRect);
+                break;
         }
     }
 
     private Vector2 _scrollPos;
+    private Vector2 _targetScrollPos;
     private Vector2 _introScrollPos;
 
     private void DrawIntroductionTab(Rect rect)
@@ -67,6 +105,71 @@ public class BetterFilterMod : Mod
         Widgets.BeginScrollView(rect, ref _introScrollPos, viewRect);
         Widgets.Label(new Rect(0f, 0f, viewRect.width, textH), text);
         Widgets.EndScrollView();
+    }
+
+    private void DrawFilterTargetsTab(Rect rect)
+    {
+        Settings.CustomFilterTargets ??= new List<FilterTargetDefinition>();
+        Widgets.Label(rect.TopPartPixels(22f), "UR.BetterFilter.FilterTargetsDesc".Translate());
+        rect.yMin += 28f;
+
+        var buttonH = 32f;
+        var scrollRect = new Rect(rect.x, rect.y, rect.width,
+            rect.height - buttonH - 8f);
+        var rowH = 58f;
+        var viewRect = new Rect(0f, 0f, scrollRect.width - 16f,
+            Mathf.Max(scrollRect.height, Settings.CustomFilterTargets.Count * rowH));
+
+        Widgets.BeginScrollView(scrollRect, ref _targetScrollPos, viewRect);
+        var y = 0f;
+        for (var i = 0; i < Settings.CustomFilterTargets.Count; i++)
+        {
+            var target = Settings.CustomFilterTargets[i];
+            var row = new Rect(0f, y, viewRect.width, rowH - 4f);
+            var type = FilterTargetCatalog.TryParseKind(target.Type, out var kind)
+                ? kind.ToString()
+                : target.Type;
+            Widgets.Label(new Rect(row.x, row.y, 90f, 22f), type);
+            Widgets.Label(new Rect(row.x + 92f, row.y, row.width - 220f, 22f),
+                target.Name);
+            Widgets.Label(new Rect(row.x + 92f, row.y + 23f, row.width - 220f, 22f),
+                target.XPath);
+
+            var editRect = new Rect(row.xMax - 116f, row.y, 54f, 24f);
+            if (Widgets.ButtonText(editRect, "UR.BetterFilter.Edit".Translate()))
+            {
+                var index = i;
+                var original = target;
+                Find.WindowStack.Add(new Dialog_EditFilterTarget(
+                    original,
+                    updated => Settings.CustomFilterTargets[index] = updated,
+                    candidate => Settings.CustomFilterTargets
+                        .Where((_, n) => n != index)
+                        .Any(existing => string.Equals(existing.Type, candidate.Type,
+                                System.StringComparison.OrdinalIgnoreCase)
+                            && string.Equals(existing.XPath, candidate.XPath,
+                                System.StringComparison.Ordinal))));
+            }
+
+            var deleteRect = new Rect(row.xMax - 56f, row.y, 54f, 24f);
+            if (Widgets.ButtonText(deleteRect, "Delete"))
+                Settings.CustomFilterTargets.RemoveAt(i--);
+            y += rowH;
+        }
+        Widgets.EndScrollView();
+
+        var addRect = new Rect(rect.x, scrollRect.yMax + 4f, rect.width, buttonH);
+        if (Widgets.ButtonText(addRect, "UR.BetterFilter.AddFilterTarget".Translate()))
+        {
+            Find.WindowStack.Add(new Dialog_EditFilterTarget(
+                null,
+                target => Settings.CustomFilterTargets.Add(target),
+                candidate => Settings.CustomFilterTargets.Any(existing =>
+                    string.Equals(existing.Type, candidate.Type,
+                        System.StringComparison.OrdinalIgnoreCase)
+                    && string.Equals(existing.XPath, candidate.XPath,
+                        System.StringComparison.Ordinal))));
+        }
     }
 
     private void DrawAppliableTab(Rect rect)
@@ -85,9 +188,11 @@ public class BetterFilterMod : Mod
             .OrderBy(d => d.LabelCap.ToString()).ToList();
         var rowH = 28f;
         var btnH = 32f;
+        var buttonGap = 6f;
         var totalH = allDefs.Count * rowH;
 
-        var scrollRect = new Rect(rect.x, rect.y, rect.width, rect.height - btnH - 12f);
+        var scrollRect = new Rect(rect.x, rect.y, rect.width,
+            rect.height - btnH - 12f);
 
         var allowedSet = new HashSet<string>(Settings.AllowedFilterDefNames);
         var viewRect = new Rect(0f, 0f, scrollRect.width - 16f, totalH);
@@ -106,12 +211,22 @@ public class BetterFilterMod : Mod
         }
         Widgets.EndScrollView();
 
-        // Reset defaults button — centered at bottom
-        var resetRect = new Rect(rect.x + (rect.width - 120f) / 2f,
-            scrollRect.yMax + 4f, 120f, btnH);
+        // Settings actions — reset defaults and migrate legacy TXT filter sets.
+        var actionY = scrollRect.yMax + 4f;
+        var actionW = (rect.width - buttonGap) / 2f;
+        var resetRect = new Rect(rect.x, actionY, actionW, btnH);
         if (Widgets.ButtonText(resetRect, "UR.BetterFilter.ResetDefault".Translate()))
         {
             Settings.AllowedFilterDefNames = new List<string>(BetterFilterSettings.Defaults);
+        }
+
+        var migrateRect = new Rect(resetRect.xMax + buttonGap, actionY, actionW, btnH);
+        if (Widgets.ButtonText(migrateRect, "UR.BetterFilter.ConvertLegacyFilters".Translate()))
+        {
+            var result = FilterSetStorage.ConvertLegacyTxtFiles();
+            Messages.Message("UR.BetterFilter.LegacyConversionMessage".Translate(
+                    result.Converted, result.Skipped, result.Failed),
+                MessageTypeDefOf.NeutralEvent, false);
         }
     }
 }
@@ -145,6 +260,7 @@ public class BetterFilterSettings : ModSettings
     };
 
     public List<string> AllowedFilterDefNames = new(Defaults);
+    public List<FilterTargetDefinition> CustomFilterTargets = new();
 
     public List<string> EffectiveAllowedDefNames =>
         AllowedFilterDefNames is { Count: > 0 }
@@ -169,5 +285,7 @@ public class BetterFilterSettings : ModSettings
             && (AllowedFilterDefNames == null || AllowedFilterDefNames.Count == 0))
             AllowedFilterDefNames = new List<string>(Defaults);
         AllowedFilterDefNames ??= new List<string>();
+        Scribe_Collections.Look(ref CustomFilterTargets, "customFilterTargets", LookMode.Deep);
+        CustomFilterTargets ??= new List<FilterTargetDefinition>();
     }
 }

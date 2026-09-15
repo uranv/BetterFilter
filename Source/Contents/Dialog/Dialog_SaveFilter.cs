@@ -10,7 +10,7 @@ using Verse;
 namespace BetterFilter.Contents.Dialog;
 
 /// <summary>
-/// Dialog for saving the current filter-component list as a command-line file.
+/// Dialog for saving the current filter-component list as an XML filter set.
 /// Shows existing saved filter sets (rename/overwrite per row) and a text input
 /// for creating new saves.
 /// </summary>
@@ -24,24 +24,9 @@ public class Dialog_SaveFilter : Window
     private string _renameBuffer = "";
     private Vector2 _listScroll = Vector2.zero;
 
-    private static string SaveDir =>
-        Path.Combine(GenFilePaths.ConfigFolderPath, "BetterFilter", "SavedFilters");
+    private static string SaveDir => FilterSetStorage.SaveDir;
 
-    private static List<string> SavedFiles
-    {
-        get
-        {
-            try
-            {
-                Directory.CreateDirectory(SaveDir);
-                return Directory.GetFiles(SaveDir, "*.txt")
-                    .Select(Path.GetFileNameWithoutExtension)
-                    .OrderBy(n => n)
-                    .ToList();
-            }
-            catch { return new List<string>(); }
-        }
-    }
+    private static List<string> SavedFiles => FilterSetStorage.SavedFiles;
 
     public Dialog_SaveFilter(Dialog_AdvancedFilters parent, List<FilterComponent> components)
     {
@@ -182,37 +167,7 @@ public class Dialog_SaveFilter : Window
     {
         try
         {
-            Directory.CreateDirectory(SaveDir);
-            var path = Path.Combine(SaveDir, filename + ".txt");
-
-            // Non-item components: one line per component
-            var lines = _components
-                .Where(c => c is not FilterComponent_Item)
-                .Select(c => c.ToCommandLine())
-                .Where(s => !string.IsNullOrEmpty(s))
-                .ToList();
-
-            // Item components: group by isWhitelist for compact output
-            var itemGroups = _components
-                .OfType<FilterComponent_Item>()
-                .GroupBy(it => it.IsWhitelist);
-            foreach (var group in itemGroups)
-            {
-                var parts = new List<string> { "item", "-d" };
-                foreach (var it in group)
-                {
-                    if (it.SelectedDef != null)
-                        parts.Add(it.SelectedDef.defName);
-                    else if (it.ErrorDefName != null)
-                        parts.Add(it.ErrorDefName);
-                }
-                if (parts.Count <= 2) continue; // no defs
-                if (!group.Key) parts.Add("-b");
-                parts.Add("-u");
-                lines.Add(string.Join(" ", parts));
-            }
-
-            File.WriteAllLines(path, lines);
+            FilterSetStorage.Save(filename, _components);
         }
         catch (Exception ex)
         {
@@ -224,7 +179,7 @@ public class Dialog_SaveFilter : Window
     {
         try
         {
-            var path = Path.Combine(SaveDir, filename + ".txt");
+            var path = Path.Combine(SaveDir, filename + ".xml");
             if (File.Exists(path))
                 File.Delete(path);
         }
@@ -238,8 +193,8 @@ public class Dialog_SaveFilter : Window
     {
         try
         {
-            var oldPath = Path.Combine(SaveDir, oldName + ".txt");
-            var newPath = Path.Combine(SaveDir, newName + ".txt");
+            var oldPath = Path.Combine(SaveDir, oldName + ".xml");
+            var newPath = Path.Combine(SaveDir, newName + ".xml");
             if (File.Exists(oldPath) && !File.Exists(newPath))
             {
                 File.Move(oldPath, newPath);

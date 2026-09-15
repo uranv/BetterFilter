@@ -42,8 +42,8 @@
     </ItemGroup>
     
     <ItemGroup>
-        <Compile Include="Contents\**" />
-        <Compile Remove="Contents\.idea\**" />
+        <Compile Include="Contents\**\*.cs" />
+        <Compile Remove="Contents\**\.idea\**" />
         <Compile Remove=".DS_Store" />
         <Compile Remove="**\.DS_Store" />
         <Compile Remove="**\**\.DS_Store" />

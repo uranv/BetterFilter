@@ -77,40 +77,26 @@ The mod adds an 【Advanced Filter】entry point in both the storage filter and 
 
 * **Category Filter:** matches items by their item category (e.g. Food, Manufactured, Raw Resources, etc.). Items in any selected category are allowed.
 
-* **Numeric Filter:** matches items by a numeric property. Enter a min/max range to select items whose property value falls within that range. Loose strategy additionally allows items without the property.
-  *【Note: this module is still in development. Currently supports Stack Limit and Mass matching; arbitrary numeric property paths will be supported in the future.】*
+* **Numeric Filter:** matches items by a numeric XPath target. Enter a min/max range to select items whose target value falls within that range. Loose strategy additionally allows items without the target.
 
-* **Enum Filter:** matches items by an enumerable property. [+]/[-] to adjust the enum values to match. For example, with the "Tech Level" property, selecting Medieval and Industrial matches only items tagged with those tech levels.
-  *【Note: this module is still in development. Currently supports Weapon Tags, Apparel Tags, Trade Tags, Tech Level, Apparel Layer, and Body Coverage; arbitrary enum property paths will be supported in the future.】*
+* **Enum Filter:** matches items by an enumerable XPath target. Enter the target path and select values discovered from the loaded DefDatabase.
 
 * **Manual Override:** add specific item definitions to manually determine the final match result. Override values take priority over all filter results. When an override is inactive (not changing the item's allow status), the item name appears in gray.
 
 
-**Filter sets can be saved, loaded, and appended. When importing, names that have disappeared due to mod changes are marked in gray *name format and can still be used — especially designed for complex mod environments.**
+**Filter sets can be saved, loaded, and appended as XML files. When importing, names or targets that have disappeared due to mod changes are marked in gray and preserved for later recovery.**
 
-Advanced filters also support **argparse-style command-line input**:
+Numeric and enum filters select a target from the built-in target list. Additional targets can be added from the mod settings page by specifying the type, display name, and a validated RimWorld-oriented XPath subset. The path is resolved against RimWorld's loaded DefDatabase rather than by serializing Defs to XML.
 
-* Worker filter: `worker -d SpecialThingFilterDef [SpecialThingFilterDef ...] [-b] [-u]`
+Examples of custom targets:
 
-* Mod filter: `mod -d PackageID [PackageID ...] [-b] [-u] `
+* `Defs/ThingDef/stackLimit` — stack limit
+* `Defs/ThingDef/stats/MarketValue` — computed market value
+* `Defs/ThingDef/weaponTags/li` — weapon tags
+* `Defs/ThingDef/apparel/layers/li` — apparel layers
+* `Defs/ThingDef/verbs/li[verbClass='Verb_Shoot']/range` — shooting range of shooting verbs
 
-* Category filter: `cat -d ThingCategoryDef [ThingCategoryDef ...] [-b] [-u] `
-
-* Numeric filter: ` value -d ValuedAttrName -v Min Max [-b] [-l] [-u]` — for -v values, use the letter n to mean no limit, and n followed by digits for negative numbers
-
-* Enum filter: ` enum -d EnumAttrName -v EnumValue [EnumValue ...] [-b] [-l] [-u]`
-
-* Item override: `item -d DefName [DefName ...] [-b] [-u]`
-
-The -b flag sets blacklist mode (default is whitelist);
-The -l flag enables loose strategy (default is strict);
-The -u flag enables unsafe input — invalid -d entries are kept and displayed in gray *name format rather than causing an error.
-
-### Example Command-Line Filter Sets
-
-* **Vanilla items only:** `mod -d ludeon.rimworld ludeon.rimworld.biotech ludeon.rimworld.anomaly ludeon.rimworld.royalty ludeon.rimworld.ideology ludeon.rimworld.odyssey -u` — when not all DLCs are present, missing DLC PackageIDs are displayed as gray error values without affecting the vanilla item filter.
-
-* **High-volume stackable raw materials:** `worker -d UR_AllowNotDeteriorating -u, value -d StackLimit -v 75 n -l -u, item -d MechanoidTransponder -b -u` — if you don't use stack-limit-changing mods, this set automatically selects items like Steel, Uranium, Plasteel, as well as raw materials added by other mods, that are acquired in bulk but won't deteriorate outdoors and are rarely damaged. Ideal for outdoor storage zones. The sole exception is the MechanoidTransponder — it also doesn't deteriorate and inexplicably has a stack limit of 75.
+Saved sets are stored under `Config/BetterFilter/SavedFilters/*.xml`. Existing legacy `.txt` sets can be converted from the mod settings page; the original files are retained.
 
 
 

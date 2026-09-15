@@ -9,7 +9,7 @@ using Verse;
 namespace BetterFilter.Contents.Dialog;
 
 /// <summary>
-/// Dialog for loading a saved filter set.
+/// Dialog for loading a saved XML filter set.
 /// Each row: Rename, Overwrite (replaces current filters), Append (adds to end), Delete.
 /// </summary>
 public class Dialog_LoadFilter : Window
@@ -20,24 +20,9 @@ public class Dialog_LoadFilter : Window
     private string _renameBuffer = "";
     private Vector2 _listScroll = Vector2.zero;
 
-    private static string SaveDir =>
-        Path.Combine(GenFilePaths.ConfigFolderPath, "BetterFilter", "SavedFilters");
+    private static string SaveDir => FilterSetStorage.SaveDir;
 
-    private static List<string> SavedFiles
-    {
-        get
-        {
-            try
-            {
-                Directory.CreateDirectory(SaveDir);
-                return Directory.GetFiles(SaveDir, "*.txt")
-                    .Select(Path.GetFileNameWithoutExtension)
-                    .OrderBy(n => n)
-                    .ToList();
-            }
-            catch { return new List<string>(); }
-        }
-    }
+    private static List<string> SavedFiles => FilterSetStorage.SavedFiles;
 
     public Dialog_LoadFilter(Dialog_AdvancedFilters parent)
     {
@@ -150,36 +135,20 @@ public class Dialog_LoadFilter : Window
 
     private void DoLoad(string filename, bool append)
     {
-        try
+        if (!FilterSetStorage.Load(filename, _parent.Components, append, out var error))
         {
-            var path = Path.Combine(SaveDir, filename + ".txt");
-            if (!File.Exists(path)) return;
-
-            var content = File.ReadAllText(path).Trim();
-            if (string.IsNullOrEmpty(content)) return;
-
-            if (!append)
-                _parent.Components.Clear();
-
-            // Reuse command parser: comma-separated lines
-            var lines = content.Split('\n')
-                .Select(l => l.Trim())
-                .Where(l => l.Length > 0);
-            var combined = string.Join(",", lines);
-            Dialog_CommandInput.TryParseMulti(combined, _parent.Components);
-            _parent.MarkDirty();
+            if (!string.IsNullOrEmpty(error))
+                Log.Error("[BetterFilter] Failed to load filter set: " + error);
+            return;
         }
-        catch (Exception ex)
-        {
-            Log.Error("[BetterFilter] Failed to load filter set: " + ex.Message);
-        }
+        _parent.MarkDirty();
     }
 
     private void DoDelete(string filename)
     {
         try
         {
-            var path = Path.Combine(SaveDir, filename + ".txt");
+            var path = Path.Combine(SaveDir, filename + ".xml");
             if (File.Exists(path))
                 File.Delete(path);
         }
@@ -193,8 +162,8 @@ public class Dialog_LoadFilter : Window
     {
         try
         {
-            var oldPath = Path.Combine(SaveDir, oldName + ".txt");
-            var newPath = Path.Combine(SaveDir, newName + ".txt");
+            var oldPath = Path.Combine(SaveDir, oldName + ".xml");
+            var newPath = Path.Combine(SaveDir, newName + ".xml");
             if (File.Exists(oldPath) && !File.Exists(newPath))
             {
                 File.Move(oldPath, newPath);

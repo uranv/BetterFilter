@@ -18,8 +18,8 @@ public abstract class FilterComponent
     public abstract bool AllowsDef(ThingDef def);
 
     /// <summary>
-    /// Serialize this filter to a command-line string for save/load.
-    /// Always uses -u to include invalid/error entries.
+    /// Serialize this filter to the legacy command-line representation.
+    /// Used only when converting legacy TXT files; normal persistence is XML.
     /// </summary>
     public abstract string ToCommandLine();
 }

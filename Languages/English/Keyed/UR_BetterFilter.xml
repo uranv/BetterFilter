@@ -52,6 +52,8 @@
   <UR.BetterFilter.MaxValue>Max:</UR.BetterFilter.MaxValue>
   <UR.BetterFilter.MinValue>Min:</UR.BetterFilter.MinValue>
   <UR.BetterFilter.SelectPropertyTooltip>Select numeric property</UR.BetterFilter.SelectPropertyTooltip>
+  <UR.BetterFilter.TargetPath>Target:</UR.BetterFilter.TargetPath>
+  <UR.BetterFilter.SelectEnumValue>Select enum values...</UR.BetterFilter.SelectEnumValue>
   <UR.BetterFilter.Loose>(Loose)</UR.BetterFilter.Loose>
   <UR.BetterFilter.Strict>(Strict)</UR.BetterFilter.Strict>
   <UR.BetterFilter.LooseToggle>L</UR.BetterFilter.LooseToggle>
@@ -142,6 +144,8 @@
   <UR.BetterFilter.ApplyMessage>Applied advanced filter settings.</UR.BetterFilter.ApplyMessage>
   <UR.BetterFilter.ApplyEmptyWarning>No applicable filters. Enable at least one filter in mod settings.</UR.BetterFilter.ApplyEmptyWarning>
   <UR.BetterFilter.ResetDefault>Reset Default</UR.BetterFilter.ResetDefault>
+  <UR.BetterFilter.ConvertLegacyFilters>Convert legacy TXT filters</UR.BetterFilter.ConvertLegacyFilters>
+  <UR.BetterFilter.LegacyConversionMessage>Converted: {0}, skipped: {1}, failed: {2}.</UR.BetterFilter.LegacyConversionMessage>
 
   <!-- ── Settings - Introduction ── -->
   <UR.BetterFilter.TabIntroduction>Introduction</UR.BetterFilter.TabIntroduction>
@@ -149,6 +153,16 @@
 
   <!-- ── Settings ── -->
   <UR.BetterFilter.TabAppliable>Applicable Filter Workers</UR.BetterFilter.TabAppliable>
+  <UR.BetterFilter.TabFilterTargets>Custom Filter Targets</UR.BetterFilter.TabFilterTargets>
+  <UR.BetterFilter.FilterTargetsDesc>Add validated numeric or enum XPath targets for the advanced filter target list.</UR.BetterFilter.FilterTargetsDesc>
+  <UR.BetterFilter.AddFilterTarget>Add Filter Target</UR.BetterFilter.AddFilterTarget>
+  <UR.BetterFilter.Edit>Edit</UR.BetterFilter.Edit>
+  <UR.BetterFilter.TargetType>Type</UR.BetterFilter.TargetType>
+  <UR.BetterFilter.TargetName>Name</UR.BetterFilter.TargetName>
+  <UR.BetterFilter.TargetNameRequired>A display name is required.</UR.BetterFilter.TargetNameRequired>
+  <UR.BetterFilter.TargetPathRequired>An XPath target is required.</UR.BetterFilter.TargetPathRequired>
+  <UR.BetterFilter.TargetTypeInvalid>The target type is invalid.</UR.BetterFilter.TargetTypeInvalid>
+  <UR.BetterFilter.TargetDuplicate>A target with the same type and XPath already exists.</UR.BetterFilter.TargetDuplicate>
   <UR.BetterFilter.TabAppliableDesc>'Apply' in this mod only applies to the following Filters. By default, only static ThingDef property filters (non-behavioral) are included.</UR.BetterFilter.TabAppliableDesc>
 
 </LanguageData>

@@ -145,9 +145,7 @@ public class Dialog_AdvancedFilters : Window
                 new FloatMenuOption("UR.BetterFilter.CategoryFilter".Translate(), () =>
                     { Components.Add(new FilterComponent_Category()); _dirty = true; }),
                 new FloatMenuOption("UR.BetterFilter.EnumFilter".Translate(), () =>
-                    { Components.Add(new FilterComponent_Enum()); _dirty = true; }),
-                new FloatMenuOption("UR.BetterFilter.CommandInput".Translate(), () =>
-                    Find.WindowStack.Add(new Dialog_CommandInput(this)))
+                    { Components.Add(new FilterComponent_Enum()); _dirty = true; })
             };
             Find.WindowStack.Add(new FloatMenu(opts));
         }

@@ -52,6 +52,8 @@
   <UR.BetterFilter.MaxValue>最大值：</UR.BetterFilter.MaxValue>
   <UR.BetterFilter.MinValue>最小值：</UR.BetterFilter.MinValue>
   <UR.BetterFilter.SelectPropertyTooltip>选择数值属性</UR.BetterFilter.SelectPropertyTooltip>
+  <UR.BetterFilter.TargetPath>目标：</UR.BetterFilter.TargetPath>
+  <UR.BetterFilter.SelectEnumValue>选择枚举值...</UR.BetterFilter.SelectEnumValue>
   <UR.BetterFilter.Loose>(宽松)</UR.BetterFilter.Loose>
   <UR.BetterFilter.Strict>(严格)</UR.BetterFilter.Strict>
   <UR.BetterFilter.LooseToggle>宽</UR.BetterFilter.LooseToggle>
@@ -142,6 +144,8 @@
   <UR.BetterFilter.ApplyMessage>已应用高级筛选设置。</UR.BetterFilter.ApplyMessage>
   <UR.BetterFilter.ApplyEmptyWarning>无可应用的筛选器。请在模组设置中勾选至少一个筛选器。</UR.BetterFilter.ApplyEmptyWarning>
   <UR.BetterFilter.ResetDefault>恢复默认</UR.BetterFilter.ResetDefault>
+  <UR.BetterFilter.ConvertLegacyFilters>转换旧版 TXT 筛选器</UR.BetterFilter.ConvertLegacyFilters>
+  <UR.BetterFilter.LegacyConversionMessage>已转换：{0}，跳过：{1}，失败：{2}。</UR.BetterFilter.LegacyConversionMessage>
 
   <!-- ── 设置 - 介绍 ── -->
   <UR.BetterFilter.TabIntroduction>介绍</UR.BetterFilter.TabIntroduction>
@@ -149,6 +153,16 @@
 
   <!-- ── 设置 ── -->
   <UR.BetterFilter.TabAppliable>可应用的过滤器</UR.BetterFilter.TabAppliable>
+  <UR.BetterFilter.TabFilterTargets>自定义筛选目标</UR.BetterFilter.TabFilterTargets>
+  <UR.BetterFilter.FilterTargetsDesc>添加经过验证的数值或枚举 XPath 目标，供高级筛选器选择。</UR.BetterFilter.FilterTargetsDesc>
+  <UR.BetterFilter.AddFilterTarget>添加筛选目标</UR.BetterFilter.AddFilterTarget>
+  <UR.BetterFilter.Edit>编辑</UR.BetterFilter.Edit>
+  <UR.BetterFilter.TargetType>类型</UR.BetterFilter.TargetType>
+  <UR.BetterFilter.TargetName>名称</UR.BetterFilter.TargetName>
+  <UR.BetterFilter.TargetNameRequired>请输入显示名称。</UR.BetterFilter.TargetNameRequired>
+  <UR.BetterFilter.TargetPathRequired>请输入 XPath 目标。</UR.BetterFilter.TargetPathRequired>
+  <UR.BetterFilter.TargetTypeInvalid>筛选目标类型无效。</UR.BetterFilter.TargetTypeInvalid>
+  <UR.BetterFilter.TargetDuplicate>相同类型和 XPath 的目标已经存在。</UR.BetterFilter.TargetDuplicate>
   <UR.BetterFilter.TabAppliableDesc>本模组的'应用'功能仅处理以下选中的过滤器，默认包含只依赖 ThingDef 属性的过滤器（非行为类）。</UR.BetterFilter.TabAppliableDesc>
 
 </LanguageData>

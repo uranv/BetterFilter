@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using BetterFilter.Contents.Filters;
+using BetterFilter.Contents.Utils;
 using RimWorld;
 using UnityEngine;
 using Verse;
@@ -9,8 +10,8 @@ using Verse;
 namespace BetterFilter.Contents.Dialog;
 
 /// <summary>
-/// Small dialog for typing a filter-definition command line.
-/// Syntax: filter -d DefName [DefName ...] [-b] [-u]
+/// Legacy argparse parser used only by the one-click TXT-to-XML migration.
+/// It is no longer exposed from the advanced-filter UI.
 /// </summary>
 public class Dialog_CommandInput : Window
 {
@@ -424,57 +425,15 @@ public class Dialog_CommandInput : Window
             return false;
         }
 
-        // Strip optional "def." prefix
-        if (propName.StartsWith("def."))
+        if (propName.StartsWith("def.", StringComparison.OrdinalIgnoreCase))
             propName = propName.Substring(4);
 
-        // Map property name: known aliases or single-quoted custom path
-        var propType = NumericPropertyType.StackLimit;
-        string customPath = null;
-        string errPropName = null;
+        var targetPath = ResolveNumericPath(propName);
+        if (targetPath == null && propName.StartsWith("'") && propName.EndsWith("'"))
+            targetPath = propName.Substring(1, propName.Length - 2);
 
-        if (string.Equals(propName, "StackLimit", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(propName, "stack", StringComparison.OrdinalIgnoreCase))
-        {
-            propType = NumericPropertyType.StackLimit;
-        }
-        else if (string.Equals(propName, "Mass", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(propName, "weight", StringComparison.OrdinalIgnoreCase))
-        {
-            propType = NumericPropertyType.Mass;
-        }
-        else if (string.Equals(propName, "MarketValue", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(propName, "market", StringComparison.OrdinalIgnoreCase))
-        {
-            propType = NumericPropertyType.MarketValue;
-        }
-        else if (propName.StartsWith("'") && propName.EndsWith("'"))
-        {
-            // Custom reflection path, e.g. 'recipeMaker?.displayPriority'
-            customPath = propName.Substring(1, propName.Length - 2);
-            // Validate it resolves to int/int? on at least one ThingDef
-            var valid = false;
-            foreach (var td in DefDatabase<ThingDef>.AllDefsListForReading)
-            {
-                var iv = FilterComponent_Numeric.ResolveIntPath(td, customPath);
-                if (iv.HasValue) { valid = true; break; }
-            }
-            if (!valid)
-            {
-                if (!isUnsafe)
-                {
-                    Messages.Message("UR.BetterFilter.CmdValueBadProp".Translate(propName),
-                        MessageTypeDefOf.RejectInput, false);
-                    return false;
-                }
-                errPropName = propName;
-            }
-            else
-            {
-                propType = NumericPropertyType.Custom;
-            }
-        }
-        else
+        if (string.IsNullOrWhiteSpace(targetPath)
+            || !RuntimeFilterPath.IsValidSyntax(targetPath))
         {
             if (!isUnsafe)
             {
@@ -482,21 +441,20 @@ public class Dialog_CommandInput : Window
                     MessageTypeDefOf.RejectInput, false);
                 return false;
             }
-            errPropName = propName;
         }
 
         var comp = new FilterComponent_Numeric
         {
-            PropertyType = propType,
-            CustomPropPath = customPath,
-            ErrorPropName = errPropName,
+            TargetPath = targetPath ?? propName,
+            ErrorTargetPath = RuntimeFilterPath.IsValidSyntax(targetPath) ? null : propName,
             IsWhitelist = !(isBlacklist ?? false),
             IsLoose = isLoose ?? false,
             Min = vMin ?? 0f,
             Max = vMax ?? 0f,
-            MinBuffer = vMin?.ToString() ?? "",
-            MaxBuffer = vMax?.ToString() ?? ""
+            MinBuffer = vMin?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "",
+            MaxBuffer = vMax?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? ""
         };
+        comp.TargetName = FilterTargetCatalog.Find(FilterTargetKind.Numeric, comp.TargetPath)?.Name;
         target.Add(comp);
         return true;
     }
@@ -563,16 +521,12 @@ public class Dialog_CommandInput : Window
             return false;
         }
 
-        // Resolve property name
-        var propType = ResolveEnumProperty(propName);
+        var targetPath = ResolveEnumPath(propName);
+        if (targetPath == null && propName.StartsWith("'") && propName.EndsWith("'"))
+            targetPath = propName.Substring(1, propName.Length - 2);
 
-        var comp = new FilterComponent_Enum
-        {
-            IsWhitelist = !(isBlacklist ?? false),
-            IsLoose = isLoose ?? false
-        };
-
-        if (propType == null)
+        if (string.IsNullOrWhiteSpace(targetPath)
+            || !RuntimeFilterPath.IsValidSyntax(targetPath))
         {
             if (!isUnsafe)
             {
@@ -580,35 +534,32 @@ public class Dialog_CommandInput : Window
                     MessageTypeDefOf.RejectInput, false);
                 return false;
             }
-            // -u mode: property invalid → filter always allows, show error name
-            comp.ErrorPropertyName = propName;
-            // Invalid property → all values are meaningless, treat as errors
-            if (rawValues.Count > 0)
-                comp.ErrorValues.AddRange(rawValues);
-        }
-        else
-        {
-            comp.PropertyType = propType;
-            var allValues = FilterComponent_Enum.GetAllValues(propType.Value);
-            var allSet = new HashSet<string>(allValues);
-            var badVals = new List<string>();
-            foreach (var v in rawValues)
-            {
-                if (allSet.Contains(v))
-                    comp.SelectedValues.Add(v);
-                else
-                    badVals.Add(v);
-            }
-            if (badVals.Count > 0 && !isUnsafe)
-            {
-                Messages.Message("UR.BetterFilter.CmdBadEnumVals".Translate(
-                    string.Join(", ", badVals)), MessageTypeDefOf.RejectInput, false);
-                return false;
-            }
-            if (badVals.Count > 0)
-                comp.ErrorValues.AddRange(badVals);
         }
 
+        var comp = new FilterComponent_Enum
+        {
+            TargetPath = targetPath ?? propName,
+            ErrorTargetPath = RuntimeFilterPath.IsValidSyntax(targetPath) ? null : propName,
+            IsWhitelist = !(isBlacklist ?? false),
+            IsLoose = isLoose ?? false
+        };
+
+        var allValues = RuntimeFilterPath.GetDistinctTextValues(comp.TargetPath);
+        var allSet = new HashSet<string>(allValues, StringComparer.Ordinal);
+        foreach (var value in rawValues)
+        {
+            if (allSet.Contains(value)) comp.SelectedValues.Add(value);
+            else comp.ErrorValues.Add(value);
+        }
+
+        if (comp.ErrorValues.Count > 0 && !isUnsafe)
+        {
+            Messages.Message("UR.BetterFilter.CmdBadEnumVals".Translate(
+                string.Join(", ", comp.ErrorValues)), MessageTypeDefOf.RejectInput, false);
+            return false;
+        }
+
+        comp.TargetName = FilterTargetCatalog.Find(FilterTargetKind.Enum, comp.TargetPath)?.Name;
         target.Add(comp);
         return true;
     }
@@ -675,26 +626,40 @@ public class Dialog_CommandInput : Window
         return true;
     }
 
-    internal static EnumPropertyType? ResolveEnumProperty(string name)
+    private static string ResolveNumericPath(string name)
+    {
+        if (string.Equals(name, "StackLimit", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(name, "stack", StringComparison.OrdinalIgnoreCase))
+            return "Defs/ThingDef/stackLimit";
+        if (string.Equals(name, "Mass", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(name, "weight", StringComparison.OrdinalIgnoreCase))
+            return "Defs/ThingDef/stats/Mass";
+        if (string.Equals(name, "MarketValue", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(name, "market", StringComparison.OrdinalIgnoreCase))
+            return "Defs/ThingDef/stats/MarketValue";
+        return null;
+    }
+
+    private static string ResolveEnumPath(string name)
     {
         if (string.Equals(name, "WeaponTags", StringComparison.OrdinalIgnoreCase)
             || string.Equals(name, "weapon", StringComparison.OrdinalIgnoreCase))
-            return EnumPropertyType.WeaponTags;
+            return "Defs/ThingDef/weaponTags/li";
         if (string.Equals(name, "TradeTags", StringComparison.OrdinalIgnoreCase)
             || string.Equals(name, "trade", StringComparison.OrdinalIgnoreCase))
-            return EnumPropertyType.TradeTags;
+            return "Defs/ThingDef/tradeTags/li";
         if (string.Equals(name, "TechLevel", StringComparison.OrdinalIgnoreCase)
             || string.Equals(name, "tech", StringComparison.OrdinalIgnoreCase))
-            return EnumPropertyType.TechLevel;
+            return "Defs/ThingDef/techLevel";
         if (string.Equals(name, "ApparelTags", StringComparison.OrdinalIgnoreCase)
             || string.Equals(name, "apparel", StringComparison.OrdinalIgnoreCase))
-            return EnumPropertyType.ApparelTags;
+            return "Defs/ThingDef/apparel/tags/li";
         if (string.Equals(name, "ApparelLayer", StringComparison.OrdinalIgnoreCase)
             || string.Equals(name, "layer", StringComparison.OrdinalIgnoreCase))
-            return EnumPropertyType.ApparelLayer;
+            return "Defs/ThingDef/apparel/layers/li";
         if (string.Equals(name, "BodyCoverage", StringComparison.OrdinalIgnoreCase)
             || string.Equals(name, "body", StringComparison.OrdinalIgnoreCase))
-            return EnumPropertyType.BodyCoverage;
+            return "Defs/ThingDef/apparel/bodyPartGroups/li";
         return null;
     }
 
