@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using BetterFilter.Contents.Utils;
@@ -8,15 +9,17 @@ namespace BetterFilter.Contents.Patches;
 
 /// <summary>
 /// UI-only visual relocation: collects all childSpecialFilters from the
-/// display-root node AND its ancestors (walking up to Root), filters out
-/// those with no matching visible items, and moves the rest into the
-/// UR_BetterFilter category.
+/// display-root node AND its ancestors (walking up to Root), keeps only
+/// official (Core/DLC) and BetterFilter filters, filters out those with no
+/// matching visible items, and moves the rest into the UR_BetterFilter
+/// category. Filters from other mods stay where their mod puts them, so
+/// their own tree patches keep working (e.g. Implant Salvage).
 ///
 /// Patches ListCategoryChildren (the public entry point) so ancestor
 /// childSpecialFilters are cleared BEFORE ParentsSpecialThingFilterDefs
 /// is iterated, preventing duplicate rendering.
 ///
-/// Temporary list swap — prefix assigns modified copies, postfix restores.
+/// Temporary list swap — prefix assigns modified copies, finalizer restores.
 /// </summary>
 [HarmonyPatch(typeof(Listing_TreeThingFilter), "ListCategoryChildren")]
 public static class Patch_FilterCategoryOrder
@@ -68,7 +71,18 @@ public static class Patch_FilterCategoryOrder
         GetParentFilter = AccessTools.FieldRefAccess<Listing_TreeThingFilter, ThingFilter>("parentFilter");
 
     /// <summary>
-    /// True while the storage filter tree is being rendered.  Gates
+    /// Vanilla computes the listing's hidden special filters once, from the
+    /// node of the first Visible(filter, node) call. After the swap that node
+    /// can be UR_BetterFilter, whose only ThingDefs are the dummies. Compute
+    /// it from the real display root before the swap instead.
+    /// </summary>
+    private static readonly Action<Listing_TreeThingFilter, TreeNode_ThingCategory> CalculateHiddenSpecialFilters =
+        AccessTools.MethodDelegate<Action<Listing_TreeThingFilter, TreeNode_ThingCategory>>(
+            AccessTools.Method(typeof(Listing_TreeThingFilter), "CalculateHiddenSpecialFilters",
+                new[] { typeof(TreeNode_ThingCategory) }));
+
+    /// <summary>
+    /// True while a filter tree is being rendered.  Gates
     /// Patch_DummyAlwaysVisible so dummy ThingDefs are only transparent
     /// during UI painting, never during game-logic queries.
     /// </summary>
@@ -90,6 +104,7 @@ public static class Patch_FilterCategoryOrder
         // ListCategoryChildren is only called once externally, not recursively.
         // No depth counter needed.
 
+        IsRenderingTreeUI = true;
         _swapped = false;
         CurrentDisplayRoot = null;
         if (node.catDef.defName == FilterCatDefName) return;
@@ -116,8 +131,10 @@ public static class Patch_FilterCategoryOrder
             .Where(d => parentFilter == null || parentFilter.Allows(d))
             .ToList();
 
-        // ── Only move filters that match at least one visible item ──
+        // ── Only move whitelisted filters that match at least one visible item ──
         var toMove = allFilters
+            .Where(sf => sf.modContentPack is { IsOfficialMod: true }
+                || sf.modContentPack == BetterFilterMod.ContentPack)
             .Where(sf => visibleDefs.Any(d => sf.Worker.CanEverMatch(d)))
             .Select(sf => sf.defName)
             .Distinct()
@@ -129,6 +146,8 @@ public static class Patch_FilterCategoryOrder
             toMove.RemoveAll(n => mutexHidden.Contains(n));
 
         var toMoveSet = new HashSet<string>(toMove);
+
+        CalculateHiddenSpecialFilters(__instance, node);
 
         // ── Save originals ──
         _savedDisplayRootParent = catDef.parent;
@@ -172,8 +191,9 @@ public static class Patch_FilterCategoryOrder
         _swapped = true;
     }
 
-    static void Postfix(TreeNode_ThingCategory node)
+    static void Finalizer(TreeNode_ThingCategory node)
     {
+        IsRenderingTreeUI = false;
         CurrentDisplayRoot = null;
         if (!_swapped) return;
 

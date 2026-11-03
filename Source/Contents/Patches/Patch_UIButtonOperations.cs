@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Emit;
 using BetterFilter.Contents.Utils;
 using HarmonyLib;
 using RimWorld;
@@ -10,12 +11,14 @@ using Verse.Sound;
 namespace BetterFilter.Contents.Patches;
 
 /// <summary>
-/// Replaces vanilla DoThingFilterConfigWindow header:
-/// - 3 equal buttons (Clear / Invert / Allow) instead of vanilla 2
-/// - Advanced / Copy / Paste buttons in apparel/food policy dialogs
-/// - Expand/collapse icons next to search bar
-/// - Context-aware HP/Quality slider hiding
-/// - Per-state view-height tracking
+/// Changes vanilla DoThingFilterConfigWindow without replacing it, so other
+/// mods' transpilers on the same method still run (e.g. Stack Gap's slider):
+/// - Transpiler swaps the vanilla header (Clear / Allow + search bar) for
+///   3 equal buttons (Clear / Invert / Allow), Advanced / Copy / Paste in
+///   apparel/food policy dialogs, and expand/collapse icons next to search
+/// - Prefix hides HP/Quality sliders in storage contexts and dummy items +
+///   mutex pairs in policy dialogs
+/// - Prefix/Postfix keep the scroll view height per UIState
 /// </summary>
 [HarmonyPatch(typeof(ThingFilterUI), nameof(ThingFilterUI.DoThingFilterConfigWindow))]
 public static class Patch_UIButtonOperations
@@ -44,30 +47,101 @@ public static class Patch_UIButtonOperations
 
     private static readonly Dictionary<ThingFilterUI.UIState, float> PerStateViewHeight = new();
 
+    private static readonly AccessTools.FieldRef<float> ViewHeight =
+        AccessTools.StaticFieldRefAccess<float>(AccessTools.Field(typeof(ThingFilterUI), "viewHeight"));
+
     // ── Prefix ──────────────────────────────────────────────────────────
 
     [HarmonyPrefix]
-    static bool Prefix(Rect rect, ThingFilterUI.UIState state, ThingFilter filter,
-        ThingFilter parentFilter, int openMask, IEnumerable<ThingDef> forceHiddenDefs,
-        IEnumerable<SpecialThingFilterDef> forceHiddenFilters,
-        ref bool forceHideHitPointsConfig, ref bool forceHideQualityConfig,
-        bool showMentalBreakChanceRange, List<ThingDef> suppressSmallVolumeTags, Map map)
+    static void Prefix(ThingFilterUI.UIState state, ThingFilter filter, ThingFilter parentFilter,
+        ref IEnumerable<ThingDef> forceHiddenDefs, ref IEnumerable<SpecialThingFilterDef> forceHiddenFilters,
+        ref bool forceHideHitPointsConfig, ref bool forceHideQualityConfig)
     {
-        var isPreview = Dialog.Dialog_AdvancedFilters.IsPreview;
+        if (PerStateViewHeight.TryGetValue(state, out var vh))
+            ViewHeight() = vh;
+
+        if (Dialog.Dialog_AdvancedFilters.IsPreview) return;
 
         // Hide vanilla HP/Quality sliders — Patch_InjectFilterSliders will
-        // place them inside UR_BetterFilter.  Dummy items are now in all
-        // common ThingCategories so UR_BetterFilter is never hidden.
-        if (!isPreview && !PolicyFilterClipboard.IsOutfitOrFoodDialog())
+        // place them inside UR_BetterFilter.
+        if (!PolicyFilterClipboard.IsOutfitOrFoodDialog())
         {
             forceHideHitPointsConfig = true;
             forceHideQualityConfig = true;
+            return;
         }
 
+        // ── Mutex pairs + dummy hiding in policy dialogs ──
+        // (Patch_FilterCategoryOrder is skipped here, so UR_BetterFilter stays empty)
+        // Hide dummies → UR_BetterFilter has no visible children → hidden
+        var combinedHiddenDefs = forceHiddenDefs?.ToList() ?? new List<ThingDef>();
+        combinedHiddenDefs.Add(ModDefOf.UR_DummyFilterItem);
+        combinedHiddenDefs.Add(ModDefOf.UR_DummyApplyFilterItem);
+        forceHiddenDefs = combinedHiddenDefs;
+
+        var displayRootCat = parentFilter != null
+            ? parentFilter.DisplayRootCategory.catDef
+            : filter.RootNode.catDef;
+        var mutexHidden = Patch_FilterCategoryOrder.GetMutexHiddenDefNames(displayRootCat, parentFilter);
+        if (mutexHidden.Count == 0) return;
+        var combinedHiddenFilters = forceHiddenFilters?.ToList() ?? new List<SpecialThingFilterDef>();
+        combinedHiddenFilters.AddRange(mutexHidden
+            .Select(n => DefDatabase<SpecialThingFilterDef>.GetNamed(n, errorOnFail: false))
+            .Where(d => d != null));
+        forceHiddenFilters = combinedHiddenFilters;
+    }
+
+    [HarmonyPostfix]
+    static void Postfix(ThingFilterUI.UIState state)
+    {
+        if (Event.current.type == EventType.Layout)
+            PerStateViewHeight[state] = ViewHeight();
+    }
+
+    // ── Transpiler: vanilla header → DrawHeader ─────────────────────────
+
+    /// <summary>
+    /// Replaces the IL from method start to <c>rect.yMin = searchRect.yMax + 3f</c>
+    /// (the set_yMin call right after QuickSearchWidget.OnGUI) with one
+    /// DrawHeader call. Everything after the header stays vanilla.
+    /// </summary>
+    [HarmonyTranspiler]
+    static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+    {
+        var codes = instructions.ToList();
+        var onGui = AccessTools.Method(typeof(QuickSearchWidget), nameof(QuickSearchWidget.OnGUI));
+        var setYMin = AccessTools.PropertySetter(typeof(Rect), nameof(Rect.yMin));
+        var onGuiIndex = codes.FindIndex(c => c.Calls(onGui));
+        var headerEnd = onGuiIndex < 0 ? -1 : codes.FindIndex(onGuiIndex, c => c.Calls(setYMin));
+        if (headerEnd < 0)
+        {
+            Log.Warning("[BetterFilter] ThingFilterUI header not found, vanilla header kept.");
+            return codes;
+        }
+
+        codes.RemoveRange(0, headerEnd + 1);
+        codes.InsertRange(0, new[]
+        {
+            new CodeInstruction(OpCodes.Ldarga_S, (byte)0),
+            new CodeInstruction(OpCodes.Ldarg_1),
+            new CodeInstruction(OpCodes.Ldarg_2),
+            new CodeInstruction(OpCodes.Ldarg_3),
+            new CodeInstruction(OpCodes.Ldarg_S, (byte)4),
+            new CodeInstruction(OpCodes.Ldarg_S, (byte)5),
+            new CodeInstruction(OpCodes.Ldarg_S, (byte)6),
+            CodeInstruction.Call(typeof(Patch_UIButtonOperations), nameof(DrawHeader)),
+        });
+        return codes;
+    }
+
+    private static void DrawHeader(ref Rect rect, ThingFilterUI.UIState state, ThingFilter filter,
+        ThingFilter parentFilter, int openMask, IEnumerable<ThingDef> forceHiddenDefs,
+        IEnumerable<SpecialThingFilterDef> forceHiddenFilters)
+    {
         Widgets.DrawMenuSection(rect);
         var num = rect.width - 2f;
 
-        if (!isPreview)
+        if (!Dialog.Dialog_AdvancedFilters.IsPreview)
         {
             var btnWidth = (num - 12f) / 3f;
             var y = rect.y + 3f;
@@ -120,37 +194,6 @@ public static class Patch_UIButtonOperations
         TooltipHandler.TipRegion(compressRect, "CollapseOneLevel".Translate());
 
         rect.yMin = searchRect.yMax + 3f;
-
-        // ── Mutex pairs + dummy hiding in policy dialogs ──
-        // (Patch_FilterCategoryOrder is skipped here, so UR_BetterFilter stays empty)
-        var combinedHiddenFilters = forceHiddenFilters?.ToList()
-            ?? new List<SpecialThingFilterDef>();
-        var combinedHiddenDefs = forceHiddenDefs?.ToList() ?? new List<ThingDef>();
-        if (!isPreview && PolicyFilterClipboard.IsOutfitOrFoodDialog())
-        {
-            // Hide dummies → UR_BetterFilter has no visible children → hidden
-            combinedHiddenDefs.Add(ModDefOf.UR_DummyFilterItem);
-            combinedHiddenDefs.Add(ModDefOf.UR_DummyApplyFilterItem);
-
-            var displayRootCat = (parentFilter != null
-                ? parentFilter.DisplayRootCategory.catDef
-                : filter.RootNode.catDef);
-            var mutexHidden = Patch_FilterCategoryOrder.GetMutexHiddenDefNames(
-                displayRootCat, parentFilter);
-            if (mutexHidden.Count > 0)
-            {
-                combinedHiddenFilters.AddRange(
-                    mutexHidden.Select(n =>
-                        DefDatabase<SpecialThingFilterDef>.GetNamed(n, errorOnFail: false))
-                    .Where(d => d != null));
-            }
-        }
-
-        // ── Tree ──
-        DrawFilterTree(rect, state, filter, parentFilter, openMask, combinedHiddenDefs,
-            combinedHiddenFilters, forceHideHitPointsConfig, forceHideQualityConfig,
-            showMentalBreakChanceRange, suppressSmallVolumeTags, map);
-        return false;
     }
 
     // ── Policy buttons ──────────────────────────────────────────────────
@@ -192,81 +235,4 @@ public static class Patch_UIButtonOperations
 
         rect.yMin = advRect.yMax;
     }
-
-    // ── Tree rendering ──────────────────────────────────────────────────
-
-    private static void DrawFilterTree(Rect rect, ThingFilterUI.UIState state,
-        ThingFilter filter, ThingFilter parentFilter, int openMask,
-        IEnumerable<ThingDef> forceHiddenDefs,
-        IEnumerable<SpecialThingFilterDef> forceHiddenFilters,
-        bool forceHideHitPointsConfig, bool forceHideQualityConfig,
-        bool showMentalBreakChanceRange, List<ThingDef> suppressSmallVolumeTags, Map map)
-    {
-        var node = filter.RootNode;
-        var hpFlag = true;
-        var qualityFlag = true;
-        if (parentFilter != null)
-        {
-            node = parentFilter.DisplayRootCategory;
-            hpFlag = parentFilter.allowedHitPointsConfigurable;
-            qualityFlag = parentFilter.allowedQualitiesConfigurable;
-        }
-        rect.xMax -= 4f;
-        rect.yMax -= 6f;
-
-        if (!PerStateViewHeight.TryGetValue(state, out var vh))
-            vh = rect.height;
-        var viewRect = new Rect(0f, 0f, rect.width - 16f, vh);
-        var visibleRect = new Rect(0f, 0f, rect.width, rect.height);
-        visibleRect.position += state.scrollPosition;
-        Widgets.BeginScrollView(rect, ref state.scrollPosition, viewRect);
-        var sy = 2f;
-        if (hpFlag && !forceHideHitPointsConfig)
-            ThingFilterUIDrawHitPoints(ref sy, viewRect.width, filter);
-        if (qualityFlag && !forceHideQualityConfig)
-            ThingFilterUIDrawQuality(ref sy, viewRect.width, filter);
-        if (ModsConfig.AnomalyActive && showMentalBreakChanceRange)
-            ThingFilterUIDrawMentalBreak(ref sy, viewRect.width, filter);
-        var num2 = sy;
-        var rect4 = new Rect(0f, sy, viewRect.width, 9999f);
-        visibleRect.position -= rect4.position;
-        var listing = new Listing_TreeThingFilter(filter, parentFilter,
-            forceHiddenDefs, forceHiddenFilters, suppressSmallVolumeTags, state.quickSearch.filter);
-        listing.Begin(rect4);
-        Patch_FilterCategoryOrder.IsRenderingTreeUI = true;
-        try
-        {
-            listing.ListCategoryChildren(node, openMask, map, visibleRect);
-        }
-        finally
-        {
-            Patch_FilterCategoryOrder.IsRenderingTreeUI = false;
-        }
-        listing.End();
-        state.quickSearch.noResultsMatched = listing.matchCount == 0;
-        if (Event.current.type == EventType.Layout)
-        {
-            var computed = num2 + listing.CurHeight + 90f;
-            PerStateViewHeight[state] = computed;
-            ThingFilterUI_SetViewHeight(computed);
-        }
-        Widgets.EndScrollView();
-    }
-
-    // ── Reflection helpers (private ThingFilterUI members) ──────────────
-
-    private static void ThingFilterUI_SetViewHeight(float val) =>
-        AccessTools.Field(typeof(ThingFilterUI), "viewHeight").SetValue(null, val);
-
-    private delegate void DrawConfigDelegate(ref float y, float width, ThingFilter filter);
-
-    private static readonly DrawConfigDelegate ThingFilterUIDrawHitPoints =
-        AccessTools.MethodDelegate<DrawConfigDelegate>(
-            AccessTools.Method(typeof(ThingFilterUI), "DrawHitPointsFilterConfig"));
-    private static readonly DrawConfigDelegate ThingFilterUIDrawQuality =
-        AccessTools.MethodDelegate<DrawConfigDelegate>(
-            AccessTools.Method(typeof(ThingFilterUI), "DrawQualityFilterConfig"));
-    private static readonly DrawConfigDelegate ThingFilterUIDrawMentalBreak =
-        AccessTools.MethodDelegate<DrawConfigDelegate>(
-            AccessTools.Method(typeof(ThingFilterUI), "DrawMentalBreakFilterConfig"));
 }

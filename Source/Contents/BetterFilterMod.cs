@@ -32,9 +32,11 @@ public class FilterTargetDefinition : IExposable
 public class BetterFilterMod : Mod
 {
     public static BetterFilterSettings Settings;
+    public static ModContentPack ContentPack;
 
     public BetterFilterMod(ModContentPack content) : base(content)
     {
+        ContentPack = content;
         Settings = GetSettings<BetterFilterSettings>();
     }
 

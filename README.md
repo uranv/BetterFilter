@@ -47,7 +47,7 @@ All new filters are based on an item's inherent properties; results are predicta
 
 ## Filter Category & Apply
 
-* New filters and selected vanilla static-property filters are grouped into a pinned filter category for convenient access.
+* New filters and selected vanilla static-property filters are grouped into a pinned filter category for convenient access. Filters and sliders added by other mods stay where those mods put them.
 
 * The 【Apply】button in this category pushes filter-worker states down to individual items (disallowed filter → disallow matching items), then resets the filter workers to allowed. The list of participating filters can be configured in mod settings.
 

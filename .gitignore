@@ -268,3 +268,6 @@ AGENTS.md
 .claude
 dev.*
 CLAUDE.md
+
+# Temporary files
+tmp/
