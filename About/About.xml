@@ -6,6 +6,7 @@
   <packageId>uranv.betterfilter</packageId>
   <supportedVersions>
     <li>1.6</li>
+    <!-- <li>1.7</li> -->
   </supportedVersions>
   <description>Advanced filtering framework for storage settings and policies.</description>
   <loadAfter>
