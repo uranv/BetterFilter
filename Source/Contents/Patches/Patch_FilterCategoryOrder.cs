@@ -10,10 +10,11 @@ namespace BetterFilter.Contents.Patches;
 /// <summary>
 /// UI-only visual relocation: collects all childSpecialFilters from the
 /// display-root node AND its ancestors (walking up to Root), keeps only
-/// official (Core/DLC) and BetterFilter filters, filters out those with no
-/// matching visible items, and moves the rest into the UR_BetterFilter
-/// category. Filters from other mods stay where their mod puts them, so
-/// their own tree patches keep working (e.g. Implant Salvage).
+/// the filters marked "move" in mod settings (default: official and
+/// BetterFilter filters), filters out those with no matching visible items,
+/// and moves the rest into the UR_BetterFilter category. Other filters stay
+/// where their mod puts them, so their own tree patches keep working
+/// (e.g. Implant Salvage).
 ///
 /// Patches ListCategoryChildren (the public entry point) so ancestor
 /// childSpecialFilters are cleared BEFORE ParentsSpecialThingFilterDefs
@@ -131,10 +132,9 @@ public static class Patch_FilterCategoryOrder
             .Where(d => parentFilter == null || parentFilter.Allows(d))
             .ToList();
 
-        // ── Only move whitelisted filters that match at least one visible item ──
+        // ── Only move filters enabled in mod settings that match at least one visible item ──
         var toMove = allFilters
-            .Where(sf => sf.modContentPack is { IsOfficialMod: true }
-                || sf.modContentPack == BetterFilterMod.ContentPack)
+            .Where(BetterFilterMod.Settings.Moves)
             .Where(sf => visibleDefs.Any(d => sf.Worker.CanEverMatch(d)))
             .Select(sf => sf.defName)
             .Distinct()

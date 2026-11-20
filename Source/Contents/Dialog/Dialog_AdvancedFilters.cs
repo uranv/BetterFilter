@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using BetterFilter.Contents.Filters;
+using BetterFilter.Contents.Utils;
 using HarmonyLib;
 using RimWorld;
 using UnityEngine;
@@ -32,7 +33,7 @@ public class Dialog_AdvancedFilters : Window
     /// Items + minimizable Buildings, excludes pawns, plants, stumps, and
     /// special constructions like Character Editor tombs.
     /// </summary>
-    private static readonly List<ThingDef> EverStorableDefs = new();
+    internal static readonly List<ThingDef> EverStorableDefs = new();
 
     /// <summary>Set while drawing the right-side preview, so patches can skip UI elements.</summary>
     internal static bool IsPreview;
@@ -85,16 +86,14 @@ public class Dialog_AdvancedFilters : Window
         _workingFilter.AllowedHitPointsPercents = source.AllowedHitPointsPercents;
         _workingFilter.AllowedQualityLevels = source.AllowedQualityLevels;
 
-        // Sync non-whitelisted filter-worker states (the ones the dialog
-        // does NOT manage — e.g. AllowDeadManApparel).  Whitelisted workers
-        // are left at their default (allowed) because filter components are
-        // empty at construction.
-        var whitelistSet = new HashSet<string>(
-            BetterFilterMod.Settings?.AllowedFilterDefNames ?? new List<string>());
+        // Sync dynamic filter-worker states (the ones the dialog does NOT
+        // manage — e.g. AllowDeadManApparel).  Static workers are left at
+        // their default (allowed) because filter components are empty at
+        // construction.
         foreach (var sfDef in DefDatabase<SpecialThingFilterDef>.AllDefsListForReading)
         {
             if (!sfDef.configurable) continue;
-            if (whitelistSet.Contains(sfDef.defName)) continue;
+            if (BetterFilterMod.Settings.KindOf(sfDef) == FilterWorkerKind.Static) continue;
             _workingFilter.SetAllow(sfDef, source.Allows(sfDef));
         }
     }
@@ -397,11 +396,8 @@ public class Dialog_AdvancedFilters : Window
             ModDefOf.UR_DummyApplyFilterItem
         };
 
-        var allowedList = BetterFilterMod.Settings?.EffectiveAllowedDefNames
-            ?? BetterFilterSettings.Defaults;
-        var allowedSet = new HashSet<string>(allowedList);
         var hiddenFilters = DefDatabase<SpecialThingFilterDef>.AllDefsListForReading
-            .Where(sf => sf.configurable && allowedSet.Contains(sf.defName))
+            .Where(sf => sf.configurable && BetterFilterMod.Settings.KindOf(sf) == FilterWorkerKind.Static)
             .ToList();
 
         var treeParent = BuildContextParentFilter();

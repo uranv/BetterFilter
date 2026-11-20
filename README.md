@@ -47,9 +47,9 @@ All new filters are based on an item's inherent properties; results are predicta
 
 ## Filter Category & Apply
 
-* New filters and selected vanilla static-property filters are grouped into a pinned filter category for convenient access. Filters and sliders added by other mods stay where those mods put them.
+* Better Filter and vanilla filters are grouped into a pinned filter category for convenient access. Filters and sliders added by other mods stay where those mods put them; a filter of another mod moves into the category only when you mark it on the Filter Settings page in mod settings.
 
-* The 【Apply】button in this category pushes filter-worker states down to individual items (disallowed filter → disallow matching items), then resets the filter workers to allowed. The list of participating filters can be configured in mod settings.
+* The 【Apply】button in this category pushes filter-worker states down to individual items (disallowed filter → disallow matching items), then resets the filter workers to allowed. Only static filters take part; choose the participating filters on the Filter Settings page in mod settings.
 
 <img src="./Preview/e24b519c79b59e64218ae83f9e6e8a76.png" alt="e24b519c79b59e64218ae83f9e6e8a76" style="zoom: 50%;" />
 
@@ -71,7 +71,7 @@ The mod adds an 【Advanced Filter】entry point in both the storage filter and 
 
 ### About Each Filter Type
 
-* **Worker Filter:** [+] to add matching filters (e.g. "Has Hit Points", "Adult Apparel", etc.), [-] to remove the most recently added filter. Multiple filters can be added. The available filter list is set in mod settings and is the same as the applicable filter list.
+* **Worker Filter:** [+] to add matching filters (e.g. "Has Hit Points", "Adult Apparel", etc.), [-] to remove the most recently added filter. Multiple filters can be added. The list contains every filter with the Static type on the Filter Settings page in mod settings.
 
 * **Mod Filter:** matches items by their source mod. [+] to add a mod name. Items from any selected mod are allowed.
 
@@ -86,7 +86,7 @@ The mod adds an 【Advanced Filter】entry point in both the storage filter and 
 
 **Filter sets can be saved, loaded, and appended as XML files. When importing, names or targets that have disappeared due to mod changes are marked in gray and preserved for later recovery.**
 
-Numeric and enum filters select a target from the built-in target list. Additional targets can be added from the mod settings page by specifying the type, display name, and a validated RimWorld-oriented XPath subset. The path is resolved against RimWorld's loaded DefDatabase rather than by serializing Defs to XML.
+Numeric and enum filters select a target from the built-in target list. Each target can be enabled or disabled on the Match Property Settings page in mod settings, and additional targets can be added there by specifying the type, display name, and a validated RimWorld-oriented XPath subset. The path is resolved against RimWorld's loaded DefDatabase rather than by serializing Defs to XML.
 
 Examples of custom targets:
 
@@ -102,7 +102,16 @@ Saved sets are stored under `Config/BetterFilter/SavedFilters/*.xml`. Existing l
 
 ## Mod Settings
 
-Includes an Introduction page and an Applicable Filter configuration page, with a reset-to-defaults option.
+Three pages with the same layout:
+
+* **Introduction:** feature overview, the option to turn off the new-filter letter, and the legacy `.txt` conversion button.
+* **Filter Settings:** lists every loaded filter by source (vanilla and DLC first, then this mod, then other mods as `Mod name (packageId)`). Each filter has three options:
+  * **Type** — Static filters read only fixed properties of the item kind; Dynamic filters read the state of each single item. Static filters are the options of the Worker Filter and are hidden from the Advanced Filter item list. The type of vanilla and Better Filter filters is fixed. The type of other mods' filters is detected automatically and can be changed.
+  * **Move** — show the filter in the pinned filter category. On by default for vanilla and Better Filter filters, off for other mods. Filters that the game never shows are grayed out.
+  * **Apply** — include the filter in the 【Apply】button. Static filters only; off by default for other mods.
+* **Match Property Settings:** lists the numeric and enum targets of the Advanced Filter. Left-click a row to enable or disable it. Built-in targets cannot be deleted. Right-click a disabled custom target to delete it.
+
+When a save is loaded and another mod has added new filters, a letter lists them. Turn the letter off on the Introduction page.
 
 ## Compatibility & Performance
 

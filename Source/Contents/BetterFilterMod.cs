@@ -13,12 +13,14 @@ public class FilterTargetDefinition : IExposable
     public string Type = "Numeric";
     public string XPath = "";
     public string Name = "";
+    public bool Enabled = true;
 
     public FilterTargetDefinition Clone() => new()
     {
         Type = Type,
         XPath = XPath,
-        Name = Name
+        Name = Name,
+        Enabled = Enabled
     };
 
     public void ExposeData()
@@ -26,11 +28,17 @@ public class FilterTargetDefinition : IExposable
         Scribe_Values.Look(ref Type, "type", "Numeric");
         Scribe_Values.Look(ref XPath, "xpath", "");
         Scribe_Values.Look(ref Name, "name", "");
+        Scribe_Values.Look(ref Enabled, "enabled", true);
     }
 }
 
 public class BetterFilterMod : Mod
 {
+    private const float RowHeight = 30f;
+    private const float BottomBarHeight = 32f;
+    private const float Gap = 8f;
+    private const float ScrollbarWidth = 16f;
+
     public static BetterFilterSettings Settings;
     public static ModContentPack ContentPack;
 
@@ -45,7 +53,7 @@ public class BetterFilterMod : Mod
     private enum SettingsTab
     {
         Introduction,
-        AppliableFilterWorker,
+        FilterSettings,
         FilterTargets
     }
 
@@ -64,9 +72,9 @@ public class BetterFilterMod : Mod
                 _currentTab == SettingsTab.Introduction
             ),
             new TabRecord(
-                "UR.BetterFilter.TabAppliable".Translate(),
-                delegate { _currentTab = SettingsTab.AppliableFilterWorker; },
-                _currentTab == SettingsTab.AppliableFilterWorker
+                "UR.BetterFilter.TabFilterSettings".Translate(),
+                delegate { _currentTab = SettingsTab.FilterSettings; },
+                _currentTab == SettingsTab.FilterSettings
             ),
             new TabRecord(
                 "UR.BetterFilter.TabFilterTargets".Translate(),
@@ -84,8 +92,8 @@ public class BetterFilterMod : Mod
             case SettingsTab.Introduction:
                 DrawIntroductionTab(innerRect);
                 break;
-            case SettingsTab.AppliableFilterWorker:
-                DrawAppliableTab(innerRect);
+            case SettingsTab.FilterSettings:
+                DrawFilterSettingsTab(innerRect);
                 break;
             case SettingsTab.FilterTargets:
                 DrawFilterTargetsTab(innerRect);
@@ -93,201 +101,316 @@ public class BetterFilterMod : Mod
         }
     }
 
-    private Vector2 _scrollPos;
-    private Vector2 _targetScrollPos;
+    // Every tab has the same layout: option or description at the top,
+    // a scroll list in the middle, one button in the bottom bar.
+
+    /// <summary>Draws the bottom-bar button and removes the bar from the tab area.</summary>
+    private static bool BottomButton(ref Rect rect, string label)
+    {
+        var clicked = Widgets.ButtonText(
+            new Rect(rect.x, rect.yMax - BottomBarHeight, 220f, BottomBarHeight), label);
+        rect.yMax -= BottomBarHeight + Gap;
+        return clicked;
+    }
+
+    /// <summary>Draws the description and removes it from the tab area.</summary>
+    private static void Description(ref Rect rect, string text)
+    {
+        var height = Text.CalcHeight(text, rect.width);
+        GUI.color = ColoredText.SubtleGrayColor;
+        Widgets.Label(new Rect(rect.x, rect.y, rect.width, height), text);
+        GUI.color = Color.white;
+        rect.yMin += height + Gap;
+    }
+
     private Vector2 _introScrollPos;
+    private Vector2 _filterScrollPos;
+    private Vector2 _targetScrollPos;
+    private float _filterViewHeight;
+    private float _targetViewHeight;
+    private List<(string header, List<SpecialThingFilterDef> defs)> _filterGroups;
 
     private void DrawIntroductionTab(Rect rect)
     {
-        string text = "UR.BetterFilter.IntroductionContent".Translate();
-        var textH = Text.CalcHeight(text, rect.width - 16f);
-        var totalH = Mathf.Max(textH + 20f, rect.height);
-
-        var viewRect = new Rect(0f, 0f, rect.width - 16f, totalH);
-        Widgets.BeginScrollView(rect, ref _introScrollPos, viewRect);
-        Widgets.Label(new Rect(0f, 0f, viewRect.width, textH), text);
-        Widgets.EndScrollView();
-    }
-
-    private void DrawFilterTargetsTab(Rect rect)
-    {
-        Settings.CustomFilterTargets ??= new List<FilterTargetDefinition>();
-        Widgets.Label(rect.TopPartPixels(22f), "UR.BetterFilter.FilterTargetsDesc".Translate());
-        rect.yMin += 28f;
-
-        var buttonH = 32f;
-        var scrollRect = new Rect(rect.x, rect.y, rect.width,
-            rect.height - buttonH - 8f);
-        var rowH = 58f;
-        var viewRect = new Rect(0f, 0f, scrollRect.width - 16f,
-            Mathf.Max(scrollRect.height, Settings.CustomFilterTargets.Count * rowH));
-
-        Widgets.BeginScrollView(scrollRect, ref _targetScrollPos, viewRect);
-        var y = 0f;
-        for (var i = 0; i < Settings.CustomFilterTargets.Count; i++)
-        {
-            var target = Settings.CustomFilterTargets[i];
-            var row = new Rect(0f, y, viewRect.width, rowH - 4f);
-            var type = FilterTargetCatalog.TryParseKind(target.Type, out var kind)
-                ? kind.ToString()
-                : target.Type;
-            Widgets.Label(new Rect(row.x, row.y, 90f, 22f), type);
-            Widgets.Label(new Rect(row.x + 92f, row.y, row.width - 220f, 22f),
-                target.Name);
-            Widgets.Label(new Rect(row.x + 92f, row.y + 23f, row.width - 220f, 22f),
-                target.XPath);
-
-            var editRect = new Rect(row.xMax - 116f, row.y, 54f, 24f);
-            if (Widgets.ButtonText(editRect, "UR.BetterFilter.Edit".Translate()))
-            {
-                var index = i;
-                var original = target;
-                Find.WindowStack.Add(new Dialog_EditFilterTarget(
-                    original,
-                    updated => Settings.CustomFilterTargets[index] = updated,
-                    candidate => Settings.CustomFilterTargets
-                        .Where((_, n) => n != index)
-                        .Any(existing => string.Equals(existing.Type, candidate.Type,
-                                System.StringComparison.OrdinalIgnoreCase)
-                            && string.Equals(existing.XPath, candidate.XPath,
-                                System.StringComparison.Ordinal))));
-            }
-
-            var deleteRect = new Rect(row.xMax - 56f, row.y, 54f, 24f);
-            if (Widgets.ButtonText(deleteRect, "Delete"))
-                Settings.CustomFilterTargets.RemoveAt(i--);
-            y += rowH;
-        }
-        Widgets.EndScrollView();
-
-        var addRect = new Rect(rect.x, scrollRect.yMax + 4f, rect.width, buttonH);
-        if (Widgets.ButtonText(addRect, "UR.BetterFilter.AddFilterTarget".Translate()))
-        {
-            Find.WindowStack.Add(new Dialog_EditFilterTarget(
-                null,
-                target => Settings.CustomFilterTargets.Add(target),
-                candidate => Settings.CustomFilterTargets.Any(existing =>
-                    string.Equals(existing.Type, candidate.Type,
-                        System.StringComparison.OrdinalIgnoreCase)
-                    && string.Equals(existing.XPath, candidate.XPath,
-                        System.StringComparison.Ordinal))));
-        }
-    }
-
-    private void DrawAppliableTab(Rect rect)
-    {
-        // Lazy validation — DefDatabase is now guaranteed loaded
-        Settings.Validate();
-
-        // Ensure defaults are populated on first run (old saves may have empty list)
-        if (Settings.AllowedFilterDefNames.Count == 0)
-            Settings.AllowedFilterDefNames = new List<string>(BetterFilterSettings.Defaults);
-
-        Widgets.Label(rect.TopPartPixels(22f), "UR.BetterFilter.TabAppliableDesc".Translate());
-        rect.yMin += 28f;
-
-        var allDefs = DefDatabase<SpecialThingFilterDef>.AllDefsListForReading
-            .OrderBy(d => d.LabelCap.ToString()).ToList();
-        var rowH = 28f;
-        var btnH = 32f;
-        var buttonGap = 6f;
-        var totalH = allDefs.Count * rowH;
-
-        var scrollRect = new Rect(rect.x, rect.y, rect.width,
-            rect.height - btnH - 12f);
-
-        var allowedSet = new HashSet<string>(Settings.AllowedFilterDefNames);
-        var viewRect = new Rect(0f, 0f, scrollRect.width - 16f, totalH);
-        Widgets.BeginScrollView(scrollRect, ref _scrollPos, viewRect);
-        var y = 0f;
-        foreach (var def in allDefs)
-        {
-            var rowRect = new Rect(0f, y, viewRect.width, rowH);
-            var isAllowed = allowedSet.Contains(def.defName);
-            Widgets.CheckboxLabeled(rowRect, (string)def.LabelCap, ref isAllowed);
-            if (isAllowed && !allowedSet.Contains(def.defName))
-                Settings.AllowedFilterDefNames.Add(def.defName);
-            else if (!isAllowed && allowedSet.Contains(def.defName))
-                Settings.AllowedFilterDefNames.Remove(def.defName);
-            y += rowH;
-        }
-        Widgets.EndScrollView();
-
-        // Settings actions — reset defaults and migrate legacy TXT filter sets.
-        var actionY = scrollRect.yMax + 4f;
-        var actionW = (rect.width - buttonGap) / 2f;
-        var resetRect = new Rect(rect.x, actionY, actionW, btnH);
-        if (Widgets.ButtonText(resetRect, "UR.BetterFilter.ResetDefault".Translate()))
-        {
-            Settings.AllowedFilterDefNames = new List<string>(BetterFilterSettings.Defaults);
-        }
-
-        var migrateRect = new Rect(resetRect.xMax + buttonGap, actionY, actionW, btnH);
-        if (Widgets.ButtonText(migrateRect, "UR.BetterFilter.ConvertLegacyFilters".Translate()))
+        if (BottomButton(ref rect, "UR.BetterFilter.ConvertLegacyFilters".Translate()))
         {
             var result = FilterSetStorage.ConvertLegacyTxtFiles();
-            Messages.Message("UR.BetterFilter.LegacyConversionMessage".Translate(
+            Messages.Message(
+                "UR.BetterFilter.LegacyConversionMessage".Translate(
                     result.Converted, result.Skipped, result.Failed),
                 MessageTypeDefOf.NeutralEvent, false);
         }
+
+        var optionRect = new Rect(rect.x, rect.y, rect.width, RowHeight);
+        Widgets.CheckboxLabeled(optionRect, "UR.BetterFilter.NotifyNewFilters".Translate(),
+            ref Settings.NotifyNewFilters, placeCheckboxNearText: true);
+        TooltipHandler.TipRegion(optionRect, "UR.BetterFilter.NotifyNewFiltersTip".Translate());
+        rect.yMin += RowHeight + Gap;
+
+        string text = "UR.BetterFilter.IntroductionContent".Translate();
+        var viewRect = new Rect(0f, 0f, rect.width - ScrollbarWidth,
+            Text.CalcHeight(text, rect.width - ScrollbarWidth));
+        Widgets.BeginScrollView(rect, ref _introScrollPos, viewRect);
+        Widgets.Label(viewRect, text);
+        Widgets.EndScrollView();
+    }
+
+    private static void SplitFilterRow(Rect row, out Rect label, out Rect category,
+        out Rect kind, out Rect move, out Rect apply)
+    {
+        apply = new Rect(row.xMax - 80f, row.y, 80f, row.height);
+        move = new Rect(apply.x - 100f, row.y, 100f, row.height);
+        kind = new Rect(move.x - 90f, row.y, 90f, row.height);
+        category = new Rect(kind.x - 160f, row.y, 154f, row.height);
+        label = new Rect(row.x + 6f, row.y, category.x - row.x - 12f, row.height);
+    }
+
+    private void DrawFilterSettingsTab(Rect rect)
+    {
+        if (BottomButton(ref rect, "UR.BetterFilter.ResetDefault".Translate()))
+            Settings.ResetFilterConfigs();
+        Description(ref rect, "UR.BetterFilter.FilterSettingsDesc".Translate());
+
+        // Official (Core + DLC) first, then this mod, then other mods by name.
+        _filterGroups ??= DefDatabase<SpecialThingFilterDef>.AllDefsListForReading
+            .GroupBy(FilterWorkerCatalog.SourceLabel)
+            .OrderBy(g => g.First().modContentPack is { IsOfficialMod: true } ? 0
+                : g.First().modContentPack == ContentPack ? 1 : 2)
+            .ThenBy(g => g.Key)
+            .Select(g => (g.Key, g.ToList()))
+            .ToList();
+
+        var headerRow = new Rect(rect.x, rect.y, rect.width - ScrollbarWidth, RowHeight);
+        SplitFilterRow(headerRow, out var labelRect, out var categoryRect,
+            out var kindRect, out var moveRect, out var applyRect);
+        Widgets.DrawLightHighlight(headerRow);
+        Text.Anchor = TextAnchor.MiddleLeft;
+        Widgets.Label(labelRect, "UR.BetterFilter.ColumnFilter".Translate());
+        Widgets.Label(categoryRect, "UR.BetterFilter.ColumnCategory".Translate());
+        Text.Anchor = TextAnchor.MiddleCenter;
+        Widgets.Label(kindRect, "UR.BetterFilter.ColumnKind".Translate());
+        Widgets.Label(moveRect, "UR.BetterFilter.ColumnMove".Translate());
+        Widgets.Label(applyRect, "UR.BetterFilter.ColumnApply".Translate());
+        Text.Anchor = TextAnchor.UpperLeft;
+        TooltipHandler.TipRegion(kindRect, "UR.BetterFilter.ColumnKindTip".Translate());
+        TooltipHandler.TipRegion(moveRect, "UR.BetterFilter.ColumnMoveTip".Translate());
+        TooltipHandler.TipRegion(applyRect, "UR.BetterFilter.ColumnApplyTip".Translate());
+        rect.yMin += RowHeight;
+
+        var viewRect = new Rect(0f, 0f, rect.width - ScrollbarWidth, _filterViewHeight);
+        Widgets.BeginScrollView(rect, ref _filterScrollPos, viewRect);
+        var y = 0f;
+        foreach (var (header, defs) in _filterGroups)
+        {
+            Widgets.ListSeparator(ref y, viewRect.width, header);
+            for (var i = 0; i < defs.Count; i++)
+            {
+                var def = defs[i];
+                var row = new Rect(0f, y, viewRect.width, RowHeight);
+                y += RowHeight;
+                if (row.yMax < _filterScrollPos.y || row.y > _filterScrollPos.y + rect.height) continue;
+
+                SplitFilterRow(row, out labelRect, out categoryRect, out kindRect, out moveRect, out applyRect);
+                var builtIn = FilterWorkerCatalog.IsBuiltIn(def);
+                var kind = Settings.KindOf(def);
+                var matchCount = FilterWorkerCatalog.MatchCount(def);
+                // The game draws a filter only when it is configurable and matches a storable item.
+                var shown = def.configurable && matchCount > 0;
+
+                if (i % 2 == 1) Widgets.DrawAltRect(row);
+                if (Mouse.IsOver(row))
+                {
+                    Widgets.DrawHighlight(row);
+                    var tip = (def.description.NullOrEmpty() ? "" : def.description + "\n\n")
+                        + "UR.BetterFilter.FilterTip".Translate(def.defName, def.workerClass.FullName,
+                        builtIn
+                            ? "UR.BetterFilter.KindFixed".Translate(FilterWorkerCatalog.KindLabel(kind))
+                            : "UR.BetterFilter.KindDetected".Translate(FilterWorkerCatalog.KindLabel(kind),
+                                FilterWorkerCatalog.KindLabel(FilterWorkerCatalog.DetectKind(def))),
+                        matchCount);
+                    if (!def.configurable) tip += "\n\n" + "UR.BetterFilter.FilterTipNotConfigurable".Translate();
+                    if (matchCount == 0) tip += "\n\n" + "UR.BetterFilter.FilterTipNoMatch".Translate();
+                    TooltipHandler.TipRegion(new Rect(row.x, row.y, kindRect.x - row.x, row.height), tip);
+                }
+
+                Text.Anchor = TextAnchor.MiddleLeft;
+                GUI.color = shown ? Color.white : ColoredText.SubtleGrayColor;
+                Widgets.Label(labelRect, def.LabelCap.ToString().Truncate(labelRect.width));
+                GUI.color = ColoredText.SubtleGrayColor;
+                Widgets.Label(categoryRect,
+                    (def.parentCategory?.LabelCap.ToString() ?? "").Truncate(categoryRect.width));
+                if (builtIn)
+                {
+                    Text.Anchor = TextAnchor.MiddleCenter;
+                    Widgets.Label(kindRect, FilterWorkerCatalog.KindLabel(kind));
+                }
+                GUI.color = Color.white;
+                Text.Anchor = TextAnchor.UpperLeft;
+
+                if (!builtIn && Widgets.ButtonText(kindRect.ContractedBy(2f), FilterWorkerCatalog.KindLabel(kind)))
+                    Settings.GetOrCreateConfig(def).Kind = kind == FilterWorkerKind.Static
+                        ? FilterWorkerKind.Dynamic
+                        : FilterWorkerKind.Static;
+
+                var move = shown && Settings.Moves(def);
+                var moveNow = move;
+                Widgets.Checkbox(new Vector2(moveRect.center.x - 12f, row.y + 3f), ref moveNow, disabled: !shown);
+                if (moveNow != move) Settings.GetOrCreateConfig(def).Move = moveNow;
+
+                var apply = Settings.Applies(def);
+                var applyNow = apply;
+                Widgets.Checkbox(new Vector2(applyRect.center.x - 12f, row.y + 3f), ref applyNow,
+                    disabled: kind == FilterWorkerKind.Dynamic);
+                if (applyNow != apply) Settings.GetOrCreateConfig(def).Apply = applyNow;
+            }
+            y += Gap;
+        }
+        Widgets.EndScrollView();
+        _filterViewHeight = y;
+    }
+
+    private const float TargetEditWidth = 70f;
+
+    /// <summary>Draws one match-property row. Returns the mouse button that clicked it, or -1.</summary>
+    private static int TargetRow(Rect row, int index, string name, string xpath, bool enabled, string tip)
+    {
+        var clickRect = new Rect(row.x, row.y, row.width - TargetEditWidth - 4f, row.height);
+        var xpathRect = new Rect(row.x + 280f, row.y, clickRect.xMax - row.x - 284f, row.height);
+        if (index % 2 == 1) Widgets.DrawAltRect(row);
+        Widgets.DrawHighlightIfMouseover(clickRect);
+        Widgets.CheckboxDraw(row.x + 4f, row.y + 3f, enabled, false);
+        Text.Anchor = TextAnchor.MiddleLeft;
+        GUI.color = enabled ? Color.white : ColoredText.SubtleGrayColor;
+        Widgets.Label(new Rect(row.x + 34f, row.y, 240f, row.height), name.Truncate(240f));
+        GUI.color = ColoredText.SubtleGrayColor;
+        Widgets.Label(xpathRect, xpath.Truncate(xpathRect.width));
+        GUI.color = Color.white;
+        Text.Anchor = TextAnchor.UpperLeft;
+        TooltipHandler.TipRegion(clickRect, xpath + "\n\n" + tip);
+        return Widgets.ButtonInvisible(clickRect) ? Event.current.button : -1;
+    }
+
+    private static bool IsDuplicateTarget(FilterTargetDefinition candidate, FilterTargetDefinition except)
+        => Settings.CustomFilterTargets.Any(existing => existing != except
+            && string.Equals(existing.Type, candidate.Type, System.StringComparison.OrdinalIgnoreCase)
+            && string.Equals(existing.XPath, candidate.XPath, System.StringComparison.Ordinal));
+
+    private void DrawFilterTargetsTab(Rect rect)
+    {
+        if (BottomButton(ref rect, "UR.BetterFilter.AddFilterTarget".Translate()))
+            Find.WindowStack.Add(new Dialog_EditFilterTarget(
+                null,
+                target => Settings.CustomFilterTargets.Add(target),
+                candidate => IsDuplicateTarget(candidate, null)));
+        Description(ref rect, "UR.BetterFilter.FilterTargetsDesc".Translate());
+
+        string builtInTip = "UR.BetterFilter.TargetRowTip".Translate();
+        var customTip = builtInTip + "\n" + "UR.BetterFilter.TargetRowTipDelete".Translate();
+        FilterTargetDefinition removed = null;
+
+        var viewRect = new Rect(0f, 0f, rect.width - ScrollbarWidth, _targetViewHeight);
+        Widgets.BeginScrollView(rect, ref _targetScrollPos, viewRect);
+        var y = 0f;
+        foreach (var kind in new[] { FilterTargetKind.Numeric, FilterTargetKind.Enum })
+        {
+            Widgets.ListSeparator(ref y, viewRect.width, (kind == FilterTargetKind.Numeric
+                ? "UR.BetterFilter.TargetSectionNumeric"
+                : "UR.BetterFilter.TargetSectionEnum").Translate());
+            var index = 0;
+            foreach (var option in FilterTargetCatalog.BuiltIns.Where(option => option.Kind == kind))
+            {
+                var disabled = Settings.DisabledBuiltInTargets.Contains(option.XPath);
+                if (TargetRow(new Rect(0f, y, viewRect.width, RowHeight), index++,
+                        option.Name.Translate(), option.XPath, !disabled, builtInTip) == 0)
+                {
+                    if (disabled) Settings.DisabledBuiltInTargets.Remove(option.XPath);
+                    else Settings.DisabledBuiltInTargets.Add(option.XPath);
+                }
+                y += RowHeight;
+            }
+
+            foreach (var target in Settings.CustomFilterTargets.Where(target =>
+                         FilterTargetCatalog.TryParseKind(target.Type, out var parsed) && parsed == kind))
+            {
+                var row = new Rect(0f, y, viewRect.width, RowHeight);
+                var click = TargetRow(row, index++, target.Name, target.XPath, target.Enabled, customTip);
+                if (click == 0) target.Enabled = !target.Enabled;
+                else if (click == 1 && !target.Enabled) removed = target;
+
+                if (Widgets.ButtonText(new Rect(row.xMax - TargetEditWidth, row.y + 2f, TargetEditWidth, row.height - 4f),
+                        "UR.BetterFilter.Edit".Translate()))
+                    Find.WindowStack.Add(new Dialog_EditFilterTarget(
+                        target,
+                        updated => Settings.CustomFilterTargets[Settings.CustomFilterTargets.IndexOf(target)] = updated,
+                        candidate => IsDuplicateTarget(candidate, target)));
+                y += RowHeight;
+            }
+            y += Gap;
+        }
+        Widgets.EndScrollView();
+        _targetViewHeight = y;
+
+        if (removed != null) Settings.CustomFilterTargets.Remove(removed);
     }
 }
 
 public class BetterFilterSettings : ModSettings
 {
-    public static readonly List<string> Defaults = new()
-    {
-        // "AllowFresh",    // 这两个原版 Filter 虽然也会从 thingDef 过滤物品，但是仍然是依赖游戏内行动的非静态过滤器
-        // "AllowRotten",
-        "AllowBurnableApparel",
-        "AllowNonBurnableApparel",
-        "AllowBurnableWeapons",
-        "AllowNonBurnableWeapons",
-        "AllowSmeltableApparel",
-        "AllowNonSmeltableApparel",
-        "AllowSmeltable",
-        "AllowNonSmeltableWeapons",
-        "AllowAdultOnlyApparel",
-        "AllowChildOnlyApparel",
-        "UR_AllowPerishable",
-        "UR_AllowNotPerishable",
-        "UR_AllowDeteriorating",
-        "UR_AllowNotDeteriorating",
-        "UR_AllowQuality",
-        "UR_AllowNoQuality",
-        "UR_AllowHitPoints",
-        "UR_AllowNoHitPoints",
-        "UR_AllowNonStackable",
-        "UR_AllowStackable"
-    };
-
-    public List<string> AllowedFilterDefNames = new(Defaults);
+    /// <summary>Stored per-filter options. A filter without an entry uses its defaults.</summary>
+    public List<FilterWorkerConfig> FilterConfigs = new();
     public List<FilterTargetDefinition> CustomFilterTargets = new();
+    /// <summary>XPaths of the built-in match properties that are hidden from the pickers.</summary>
+    public List<string> DisabledBuiltInTargets = new();
+    public bool NotifyNewFilters = true;
 
-    public List<string> EffectiveAllowedDefNames =>
-        AllowedFilterDefNames is { Count: > 0 }
-            ? AllowedFilterDefNames
-            : Defaults;
+    private Dictionary<string, FilterWorkerConfig> _configByDefName;
 
-    public IEnumerable<SpecialThingFilterDef> AllowedFilters =>
-        EffectiveAllowedDefNames
-            .Select(n => DefDatabase<SpecialThingFilterDef>.GetNamed(n, errorOnFail: false))
-            .Where(d => d != null);
+    public FilterWorkerConfig FindConfig(SpecialThingFilterDef def)
+        => (_configByDefName ??= FilterConfigs.ToDictionary(config => config.DefName))
+            .TryGetValue(def.defName, out var found) ? found : null;
 
-    public void Validate()
+    public FilterWorkerConfig GetOrCreateConfig(SpecialThingFilterDef def)
     {
-        AllowedFilterDefNames.RemoveAll(n =>
-            DefDatabase<SpecialThingFilterDef>.GetNamed(n, errorOnFail: false) == null);
+        var config = FindConfig(def);
+        if (config != null) return config;
+        config = new FilterWorkerConfig();
+        config.Reset(def);
+        FilterConfigs.Add(config);
+        return _configByDefName[def.defName] = config;
+    }
+
+    /// <summary>Built-in filters have a fixed kind. Other filters use the stored kind, then the detected kind.</summary>
+    public FilterWorkerKind KindOf(SpecialThingFilterDef def)
+        => FilterWorkerCatalog.IsBuiltIn(def)
+            ? FilterWorkerCatalog.DefaultKind(def)
+            : FindConfig(def)?.Kind ?? FilterWorkerCatalog.DefaultKind(def);
+
+    /// <summary>The filter is drawn in the UR_BetterFilter category.</summary>
+    public bool Moves(SpecialThingFilterDef def)
+        => FindConfig(def)?.Move ?? FilterWorkerCatalog.IsBuiltIn(def);
+
+    /// <summary>The "Apply" button writes the filter into per-item permissions.</summary>
+    public bool Applies(SpecialThingFilterDef def)
+        => KindOf(def) == FilterWorkerKind.Static
+           && (FindConfig(def)?.Apply ?? FilterWorkerCatalog.IsBuiltIn(def));
+
+    public void ResetFilterConfigs()
+    {
+        foreach (var config in FilterConfigs)
+        {
+            if (DefDatabase<SpecialThingFilterDef>.GetNamedSilentFail(config.DefName) is { } def)
+                config.Reset(def);
+        }
     }
 
     public override void ExposeData()
     {
-        Scribe_Collections.Look(ref AllowedFilterDefNames, "allowedFilterDefNames", LookMode.Value);
-        if (Scribe.mode == LoadSaveMode.LoadingVars
-            && (AllowedFilterDefNames == null || AllowedFilterDefNames.Count == 0))
-            AllowedFilterDefNames = new List<string>(Defaults);
-        AllowedFilterDefNames ??= new List<string>();
+        Scribe_Collections.Look(ref FilterConfigs, "filterConfigs", LookMode.Deep);
         Scribe_Collections.Look(ref CustomFilterTargets, "customFilterTargets", LookMode.Deep);
+        Scribe_Collections.Look(ref DisabledBuiltInTargets, "disabledBuiltInTargets", LookMode.Value);
+        Scribe_Values.Look(ref NotifyNewFilters, "notifyNewFilters", true);
+        FilterConfigs ??= new List<FilterWorkerConfig>();
         CustomFilterTargets ??= new List<FilterTargetDefinition>();
+        DisabledBuiltInTargets ??= new List<string>();
     }
 }

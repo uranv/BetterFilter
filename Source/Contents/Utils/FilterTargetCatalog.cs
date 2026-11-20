@@ -13,13 +13,12 @@ public enum FilterTargetKind
 
 public sealed class FilterTargetOption
 {
-    public FilterTargetKind Kind;
-    public string Name;
-    public string XPath;
-    public bool IsBuiltIn;
+    public FilterTargetKind Kind { get; }
+    public string Name { get; }
+    public string XPath { get; }
+    public bool IsBuiltIn { get; }
 
-    public FilterTargetOption(FilterTargetKind kind, string name, string xpath,
-        bool isBuiltIn = false)
+    public FilterTargetOption(FilterTargetKind kind, string name, string xpath, bool isBuiltIn = false)
     {
         Kind = kind;
         Name = name;
@@ -30,57 +29,63 @@ public sealed class FilterTargetOption
 
 public static class FilterTargetCatalog
 {
-    private static readonly List<FilterTargetOption> BuiltIns = new()
+    internal static readonly List<FilterTargetOption> BuiltIns = new()
     {
-        new(FilterTargetKind.Numeric, "UR.BetterFilter.StackLimit", "Defs/ThingDef/stackLimit", true),
-        new(FilterTargetKind.Numeric, "UR.BetterFilter.MassKg", "Defs/ThingDef/stats/Mass", true),
-        new(FilterTargetKind.Numeric, "UR.BetterFilter.MarketValue", "Defs/ThingDef/stats/MarketValue", true),
-        new(FilterTargetKind.Enum, "UR.BetterFilter.WeaponTags", "Defs/ThingDef/weaponTags/li", true),
-        new(FilterTargetKind.Enum, "UR.BetterFilter.TradeTags", "Defs/ThingDef/tradeTags/li", true),
-        new(FilterTargetKind.Enum, "UR.BetterFilter.TechLevel", "Defs/ThingDef/techLevel", true),
-        new(FilterTargetKind.Enum, "UR.BetterFilter.ApparelTags", "Defs/ThingDef/apparel/tags/li", true),
-        new(FilterTargetKind.Enum, "UR.BetterFilter.ApparelLayer", "Defs/ThingDef/apparel/layers/li", true),
-        new(FilterTargetKind.Enum, "UR.BetterFilter.BodyCoverage", "Defs/ThingDef/apparel/bodyPartGroups/li", true)
+        new FilterTargetOption(FilterTargetKind.Numeric, "UR.BetterFilter.StackLimit", "Defs/ThingDef/stackLimit", isBuiltIn: true),
+        new FilterTargetOption(FilterTargetKind.Numeric, "UR.BetterFilter.MassKg", "Defs/ThingDef/stats/Mass", isBuiltIn: true),
+        new FilterTargetOption(FilterTargetKind.Numeric, "UR.BetterFilter.MarketValue", "Defs/ThingDef/stats/MarketValue", isBuiltIn: true),
+        new FilterTargetOption(FilterTargetKind.Enum, "UR.BetterFilter.WeaponTags", "Defs/ThingDef/weaponTags/li", isBuiltIn: true),
+        new FilterTargetOption(FilterTargetKind.Enum, "UR.BetterFilter.TradeTags", "Defs/ThingDef/tradeTags/li", isBuiltIn: true),
+        new FilterTargetOption(FilterTargetKind.Enum, "UR.BetterFilter.TechLevel", "Defs/ThingDef/techLevel", isBuiltIn: true),
+        new FilterTargetOption(FilterTargetKind.Enum, "UR.BetterFilter.ApparelTags", "Defs/ThingDef/apparel/tags/li", isBuiltIn: true),
+        new FilterTargetOption(FilterTargetKind.Enum, "UR.BetterFilter.ApparelLayer", "Defs/ThingDef/apparel/layers/li", isBuiltIn: true),
+        new FilterTargetOption(FilterTargetKind.Enum, "UR.BetterFilter.BodyCoverage", "Defs/ThingDef/apparel/bodyPartGroups/li", isBuiltIn: true)
     };
 
-    public static IEnumerable<FilterTargetOption> Get(FilterTargetKind kind)
+    /// <summary>Targets of the kind. The pickers pass enabledOnly; lookups of saved components do not.</summary>
+    public static IEnumerable<FilterTargetOption> Get(FilterTargetKind kind, bool enabledOnly = true)
     {
-        foreach (var builtIn in BuiltIns.Where(t => t.Kind == kind))
-            yield return builtIn;
-
-        var custom = BetterFilterMod.Settings?.CustomFilterTargets;
-        if (custom == null) yield break;
-        foreach (var definition in custom)
+        foreach (var option in BuiltIns)
         {
-            if (!TryParseKind(definition.Type, out var customKind) || customKind != kind)
-                continue;
-            yield return new FilterTargetOption(kind,
-                definition.Name,
-                definition.XPath,
-                isBuiltIn: false);
+            if (option.Kind == kind
+                && !(enabledOnly && BetterFilterMod.Settings.DisabledBuiltInTargets.Contains(option.XPath)))
+                yield return option;
+        }
+
+        foreach (var definition in BetterFilterMod.Settings.CustomFilterTargets)
+        {
+            if (TryParseKind(definition.Type, out var parsedKind) && parsedKind == kind
+                && !(enabledOnly && !definition.Enabled))
+                yield return new FilterTargetOption(kind, definition.Name, definition.XPath, isBuiltIn: false);
         }
     }
 
-    public static FilterTargetOption Find(FilterTargetKind kind, string xpath,
-        string name = null)
+    public static FilterTargetOption Find(FilterTargetKind kind, string xpath, string name = null)
     {
-        if (!string.IsNullOrEmpty(xpath))
+        var options = Get(kind, enabledOnly: false).ToList();
+        if (!string.IsNullOrWhiteSpace(xpath))
         {
-            var byPath = Get(kind).FirstOrDefault(t =>
-                string.Equals(t.XPath, xpath, StringComparison.Ordinal));
-            if (byPath != null) return byPath;
+            var byPath = options.FirstOrDefault(option =>
+                string.Equals(option.XPath, xpath, StringComparison.Ordinal));
+            if (byPath != null)
+            {
+                return byPath;
+            }
         }
-        if (!string.IsNullOrEmpty(name))
+
+        if (!string.IsNullOrWhiteSpace(name))
         {
-            var byName = Get(kind).FirstOrDefault(t =>
-                string.Equals(t.Name, name, StringComparison.Ordinal));
-            if (byName != null) return byName;
+            return options.FirstOrDefault(option =>
+                string.Equals(option.Name, name, StringComparison.Ordinal));
         }
+
         return null;
     }
 
-    public static string DisplayName(FilterTargetOption option) =>
-        option == null ? null : option.IsBuiltIn ? option.Name.Translate() : option.Name;
+    public static string DisplayName(FilterTargetOption option)
+    {
+        return option == null ? null : option.IsBuiltIn ? option.Name.Translate() : option.Name;
+    }
 
     public static bool TryParseKind(string type, out FilterTargetKind kind)
     {
@@ -89,13 +94,15 @@ public static class FilterTargetCatalog
             kind = FilterTargetKind.Numeric;
             return true;
         }
+
         if (string.Equals(type, "Enum", StringComparison.OrdinalIgnoreCase)
             || string.Equals(type, "Enumerative", StringComparison.OrdinalIgnoreCase))
         {
             kind = FilterTargetKind.Enum;
             return true;
         }
-        kind = FilterTargetKind.Numeric;
+
+        kind = default;
         return false;
     }
 }

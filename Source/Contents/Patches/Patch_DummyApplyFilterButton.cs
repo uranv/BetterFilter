@@ -63,13 +63,13 @@ public static class Patch_DummyApplyFilterButton
     }
 
     /// <summary>
-    /// For each whitelisted SpecialThingFilterWorker that is currently disallowed,
+    /// For each SpecialThingFilterWorker in the Apply scope that is currently disallowed,
     /// disallow all matching ThingDefs, then re-allow the filter worker.
     /// </summary>
     private static void ApplyFilterWorkers(ThingFilter filter)
     {
-        var allowedFilters = BetterFilterMod.Settings?.AllowedFilters?.ToList()
-            ?? new List<SpecialThingFilterDef>();
+        var allowedFilters = DefDatabase<SpecialThingFilterDef>.AllDefsListForReading
+            .Where(BetterFilterMod.Settings.Applies).ToList();
 
         if (allowedFilters.Count == 0)
         {

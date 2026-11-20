@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BetterFilter.Contents.Utils;
 using UnityEngine;
 using Verse;
 
@@ -109,8 +110,8 @@ public class FilterComponent_Worker : FilterComponent
             () => { SelectedDefs.RemoveAt(SelectedDefs.Count - 1); dialog.MarkDirty(); });
         Utils.FilterDrawer.DrawPlusBottomRight(inner, () =>
         {
-            var allowed = BetterFilterMod.Settings?.AllowedFilters
-                ?? Enumerable.Empty<SpecialThingFilterDef>();
+            var allowed = DefDatabase<SpecialThingFilterDef>.AllDefsListForReading
+                .Where(d => BetterFilterMod.Settings.KindOf(d) == FilterWorkerKind.Static);
             var existing = new HashSet<SpecialThingFilterDef>(SelectedDefs);
             var items = allowed
                 .Where(d => !existing.Contains(d))
