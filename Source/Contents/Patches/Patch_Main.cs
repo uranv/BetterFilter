@@ -8,6 +8,6 @@ public static class HarmonyPatchesMain
     static HarmonyPatchesMain()
     {
         var harmony = new HarmonyLib.Harmony("com.ur.BetterFilter.patches");
-        harmony.PatchAll();
+        harmony.PatchAll(typeof(HarmonyPatchesMain).Assembly);
     }
 }
